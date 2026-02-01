@@ -1,0 +1,199 @@
+# =============================================================================
+# Cross-Sell Intelligence Engine — Central Configuration
+# =============================================================================
+# All volatile inputs (thresholds, mappings, amount bands) live here.
+# Stable logic (cadence detection, feature engineering) lives in code.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# RECURRING PAYMENT DETECTION — Global Parameters
+# -----------------------------------------------------------------------------
+recurring_detection:
+  min_occurrences: 3
+  default_lookback_days: 365
+
+  cadence_tolerances:
+    monthly:
+      min_gap_days: 20
+      max_gap_days: 40
+      target_gap_days: 30
+    biweekly:
+      min_gap_days: 10
+      max_gap_days: 18
+      target_gap_days: 14
+    weekly:
+      min_gap_days: 5
+      max_gap_days: 9
+      target_gap_days: 7
+
+  cadence_scoring:
+    gap_consistency_weight: 0.50
+    occurrence_count_weight: 0.30
+    tenure_weight: 0.20
+
+# -----------------------------------------------------------------------------
+# MERCHANT TAXONOMY
+# Maps (mcc_code, category) -> product_type
+# -----------------------------------------------------------------------------
+merchant_taxonomy:
+  - mcc_code: 6159
+    category: "Mortgage"
+    product_type: "External Mortgage"
+    match_confidence: 0.85
+
+  - mcc_code: 6120
+    category: "Mortgage"
+    product_type: "External Mortgage"
+    match_confidence: 0.90
+
+  - mcc_code: 6022
+    category: "Mortgage"
+    product_type: "External Mortgage"
+    match_confidence: 0.80
+
+  - mcc_code: 6141
+    category: "Auto Loan"
+    product_type: "External Auto Loan"
+    match_confidence: 0.85
+
+  - mcc_code: 6153
+    category: "Auto Loan"
+    product_type: "External Auto Loan"
+    match_confidence: 0.80
+
+  - mcc_code: 6159
+    category: "Auto Loan"
+    product_type: "External Auto Loan"
+    match_confidence: 0.80
+
+  - mcc_code: 6153
+    category: "Credit Card Payment"
+    product_type: "External Credit Card"
+    match_confidence: 0.85
+
+  - mcc_code: 6099
+    category: "Credit Card Payment"
+    product_type: "External Credit Card"
+    match_confidence: 0.90
+
+  - mcc_code: 6141
+    category: "Credit Card Payment"
+    product_type: "External Credit Card"
+    match_confidence: 0.85
+
+  - mcc_code: 6159
+    category: "Student Loan"
+    product_type: "Student Loan"
+    match_confidence: 0.90
+
+  - mcc_code: 6141
+    category: "Student Loan"
+    product_type: "Student Loan"
+    match_confidence: 0.85
+
+  - mcc_code: 6512
+    category: "Rent"
+    product_type: "Rent"
+    match_confidence: 0.90
+
+  - mcc_code: 6500
+    category: "Rent"
+    product_type: "Rent"
+    match_confidence: 0.85
+
+  - mcc_code: 6311
+    category: "Insurance"
+    product_type: "Insurance"
+    match_confidence: 0.85
+
+  - mcc_code: 6321
+    category: "Insurance"
+    product_type: "Insurance"
+    match_confidence: 0.90
+
+  - mcc_code: 6399
+    category: "Insurance"
+    product_type: "Insurance"
+    match_confidence: 0.80
+
+# -----------------------------------------------------------------------------
+# PRODUCT INTERPRETERS — Per-Product Thresholds
+# -----------------------------------------------------------------------------
+product_interpreters:
+  External Mortgage:
+    expected_cadence: "monthly"
+    min_amount: 500.0
+    max_amount: 10000.0
+    max_amount_cv: 0.08
+    min_tenure_months: 2
+    expected_channels: ["ACH", "Bill Pay", "Check"]
+    channel_weight: 0.15
+
+  External Auto Loan:
+    expected_cadence: "monthly"
+    min_amount: 100.0
+    max_amount: 2000.0
+    max_amount_cv: 0.06
+    min_tenure_months: 2
+    expected_channels: ["ACH", "Bill Pay", "Card"]
+    channel_weight: 0.15
+
+  External Credit Card:
+    expected_cadence: "monthly"
+    min_amount: 25.0
+    max_amount: 8000.0
+    max_amount_cv: 0.30
+    min_tenure_months: 2
+    expected_channels: ["ACH", "Bill Pay"]
+    channel_weight: 0.10
+
+  Student Loan:
+    expected_cadence: "monthly"
+    min_amount: 100.0
+    max_amount: 2500.0
+    max_amount_cv: 0.06
+    min_tenure_months: 2
+    expected_channels: ["ACH", "Bill Pay", "Check"]
+    channel_weight: 0.15
+
+  Rent:
+    expected_cadence: "monthly"
+    min_amount: 300.0
+    max_amount: 8000.0
+    max_amount_cv: 0.10
+    min_tenure_months: 2
+    expected_channels: ["ACH", "Bill Pay", "Check"]
+    channel_weight: 0.10
+
+  Insurance:
+    expected_cadence: "monthly"
+    min_amount: 40.0
+    max_amount: 1500.0
+    max_amount_cv: 0.10
+    min_tenure_months: 2
+    expected_channels: ["ACH", "Bill Pay", "Card"]
+    channel_weight: 0.10
+
+# -----------------------------------------------------------------------------
+# CONFIDENCE TIER BOUNDARIES
+# -----------------------------------------------------------------------------
+confidence_tiers:
+  High:
+    min_score: 0.75
+    max_score: 1.0
+  Medium:
+    min_score: 0.50
+    max_score: 0.75
+  Low:
+    min_score: 0.0
+    max_score: 0.50
+
+# -----------------------------------------------------------------------------
+# DRIFT MONITORING
+# -----------------------------------------------------------------------------
+drift_monitoring:
+  ks_alpha: 0.05
+  psi_minor: 0.1
+  psi_major: 0.25
+  baseline_days: 90
+  comparison_days: 30
