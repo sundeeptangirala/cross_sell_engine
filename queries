@@ -1,0 +1,15 @@
+SELECT 
+    COUNT(*) as total_transactions,
+    SUM(CASE WHEN mcc IS NOT NULL AND mcc != '' THEN 1 ELSE 0 END) as has_mcc,
+    SUM(CASE WHEN mcc IS NULL OR mcc = '' THEN 1 ELSE 0 END) as no_mcc,
+    CAST(SUM(CASE WHEN mcc IS NOT NULL AND mcc != '' THEN 1 ELSE 0 END) * 100.0 / COUNT(*) AS DECIMAL(5,2)) as mcc_coverage_pct,
+    
+    -- By transaction type (if you have this field)
+    SUM(CASE WHEN mcc IS NOT NULL AND transaction_type = 'DEBIT_CARD' THEN 1 ELSE 0 END) as debit_with_mcc,
+    SUM(CASE WHEN mcc IS NULL AND transaction_type = 'DEBIT_CARD' THEN 1 ELSE 0 END) as debit_no_mcc,
+    
+    SUM(CASE WHEN mcc IS NOT NULL AND transaction_type = 'ACH' THEN 1 ELSE 0 END) as ach_with_mcc,
+    SUM(CASE WHEN mcc IS NULL AND transaction_type = 'ACH' THEN 1 ELSE 0 END) as ach_no_mcc
+
+FROM SEGEDW.SEG_E0.SAT_SEG_DEP_TRAN
+WHERE transaction_date >= DATEADD(month, -6, GETDATE())
