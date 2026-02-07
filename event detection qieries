@@ -1,0 +1,698 @@
+/*******************************************************************************
+ * TIER 3: EVENT-TRIGGERED CROSS-SELL - TOP 3 LIFE EVENT DETECTION QUERIES
+ * 
+ * Purpose: Detect life events from transaction data to trigger product offers
+ * Database: SEGEDW.SEG_E0.SAT_SEG_DEP_TRAN
+ * Detection Window: 90-180 days lookback
+ * 
+ * Events Included:
+ *   1. Home Purchase → Offer: HELOC, Home Insurance
+ *   2. Auto Purchase → Offer: Auto Loan Refinance, Auto Insurance  
+ *   3. New Baby → Offer: 529 Plan, Life Insurance
+ *
+ * Author: Sundeep Tangirala
+ * Date: 2026-02-06
+ *******************************************************************************/
+
+
+/*******************************************************************************
+ * EVENT 1: HOME PURCHASE DETECTION
+ * 
+ * Confidence Thresholds:
+ *   - HIGH (90-100%): Real estate + moving + home improvement
+ *   - MEDIUM-HIGH (75-89%): Real estate + moving OR furniture
+ *   - MEDIUM (60-74%): Moving + home improvement + furniture
+ *
+ * Expected Accuracy: 85-90%
+ * Expected Conversion Rate: 60-75% (HIGH), 45-60% (MEDIUM-HIGH)
+ *******************************************************************************/
+
+-- STEP 1: Get all customer transactions from last 90 days
+-- Extracts MCC code from DEPTRANS_PAYEE field (after '~' character)
+-- Filters out invalid/system transactions
+WITH customer_transactions AS (
+    SELECT 
+        customer_id,
+        DEPTRANS_POST_DATE as transaction_date,
+        DEPTRANS_AMOUNT as amount,
+        CLEANSED as description,
+        DEPTRANS_TYPE_DESC as txn_type,
+        
+        -- Extract MCC from end of DEPTRANS_PAYEE (last 4 chars after '~')
+        CASE
+            WHEN CHARINDEX('~', REVERSE(REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~'))) > 0
+            THEN SUBSTRING(
+                REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~'),
+                LEN(REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~')) 
+                - CHARINDEX('~', REVERSE(REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~'))) + 2,
+                4
+            )
+            ELSE ''
+        END as mcc
+        
+    FROM SEGEDW.SEG_E0.SAT_SEG_DEP_TRAN
+    WHERE DEPTRANS_POST_DATE >= DATEADD(day, -90, GETDATE())  -- Last 90 days only
+        AND PROCESS_DATE > '12-12-2025'
+        AND DEPTRANS_AMOUNT > 0  -- Positive transactions only
+        AND CLEANSED IS NOT NULL  -- Must have description
+        AND DEPTRANS_PAYEE NOT LIKE '%*%'  -- Exclude system/error transactions
+),
+
+-- STEP 2: Calculate signal scores for each customer
+-- Scores 5 different signals and sums them for overall confidence
+-- Uses MAX() to check if ANY transaction matches (binary: signal present or not)
+-- Uses SUM() with CASE to aggregate spending in categories
+signals AS (
+    SELECT 
+        customer_id,
+        
+        -- SIGNAL 1: Real estate transaction (50 points)
+        -- Checks for MCC 6513 (Real Estate) or keywords: title, escrow, closing, settlement
+        -- This is the STRONGEST signal - means house closing happened
+        MAX(CASE 
+            WHEN mcc = '6513' 
+                OR LOWER(description) LIKE '%title%'
+                OR LOWER(description) LIKE '%escrow%'
+                OR LOWER(description) LIKE '%closing%'
+                OR LOWER(description) LIKE '%settlement%'
+                OR LOWER(description) LIKE '%real estate%'
+            THEN 50 ELSE 0 
+        END) as real_estate_score,
+        
+        -- SIGNAL 2: Moving company (25 points)
+        -- Checks for MCC 4214 (Moving/Storage) or keywords: uhaul, pods, moving
+        -- Strong supporting signal - people move when buying homes
+        MAX(CASE 
+            WHEN mcc = '4214'
+                OR LOWER(description) LIKE '%uhaul%'
+                OR LOWER(description) LIKE '%u-haul%'
+                OR LOWER(description) LIKE '%u haul%'
+                OR LOWER(description) LIKE '%pods%'
+                OR LOWER(description) LIKE '%moving%'
+                OR LOWER(description) LIKE '%movers%'
+            THEN 25 ELSE 0 
+        END) as moving_score,
+        
+        -- SIGNAL 3: Home improvement spike (15 points if total spending > $1000)
+        -- Checks MCCs: 5200, 5211, 5231, 5251, 5261 (Home Depot, Lowe's, etc.)
+        -- New homeowners often make immediate repairs/improvements
+        -- Only scores if TOTAL spending exceeds $1000 (prevents false positives)
+        CASE 
+            WHEN SUM(CASE 
+                WHEN mcc IN ('5200', '5211', '5231', '5251', '5261')
+                    OR LOWER(description) LIKE '%home depot%'
+                    OR LOWER(description) LIKE '%homedepot%'
+                    OR LOWER(description) LIKE '%lowes%'
+                    OR LOWER(description) LIKE '%lowe''s%'
+                    OR LOWER(description) LIKE '%menards%'
+                    OR LOWER(description) LIKE '%hardware%'
+                THEN amount ELSE 0 
+            END) > 1000 
+            THEN 15 ELSE 0 
+        END as home_improvement_score,
+        
+        -- SIGNAL 4: Furniture purchases (10 points if total spending > $500)
+        -- Checks MCCs: 5712, 5713, 5714, 5722 (Furniture stores)
+        -- New homeowners buy furniture to furnish new space
+        CASE 
+            WHEN SUM(CASE 
+                WHEN mcc IN ('5712', '5713', '5714', '5722')
+                    OR LOWER(description) LIKE '%ikea%'
+                    OR LOWER(description) LIKE '%ashley furniture%'
+                    OR LOWER(description) LIKE '%wayfair%'
+                    OR LOWER(description) LIKE '%furniture%'
+                THEN amount ELSE 0 
+            END) > 500 
+            THEN 10 ELSE 0 
+        END as furniture_score,
+        
+        -- SIGNAL 5: Contractor payments (10 points if total spending > $1500)
+        -- Checks MCCs: 1520, 1711, 1731, etc. (Contractors, plumbers, electricians)
+        -- Indicates renovation or repair work
+        CASE 
+            WHEN SUM(CASE 
+                WHEN mcc IN ('1520', '1711', '1731', '1740', '1750', '1761', '1771')
+                    OR LOWER(description) LIKE '%construction%'
+                    OR LOWER(description) LIKE '%contractor%'
+                    OR LOWER(description) LIKE '%plumbing%'
+                    OR LOWER(description) LIKE '%electric%'
+                    OR LOWER(description) LIKE '%hvac%'
+                    OR LOWER(description) LIKE '%roofing%'
+                    OR LOWER(description) LIKE '%carpentry%'
+                THEN amount ELSE 0 
+            END) > 1500 
+            THEN 10 ELSE 0 
+        END as contractor_score,
+        
+        -- SUPPORTING DETAILS: Capture when event likely occurred
+        -- Find the earliest real estate transaction date (likely closing date)
+        MIN(CASE 
+            WHEN mcc = '6513' 
+                OR LOWER(description) LIKE '%title%' 
+                OR LOWER(description) LIKE '%escrow%'
+            THEN transaction_date 
+        END) as estimated_purchase_date,
+        
+        -- Calculate total spending in each category for reporting
+        SUM(CASE 
+            WHEN mcc IN ('5200', '5211', '5231', '5251', '5261')
+                OR LOWER(description) LIKE '%home depot%'
+                OR LOWER(description) LIKE '%lowes%'
+            THEN amount ELSE 0 
+        END) as total_home_improvement_spend,
+        
+        SUM(CASE 
+            WHEN mcc IN ('5712', '5713', '5714', '5722')
+                OR LOWER(description) LIKE '%furniture%'
+            THEN amount ELSE 0 
+        END) as total_furniture_spend,
+        
+        -- Count how many real estate and moving transactions (for validation)
+        SUM(CASE 
+            WHEN mcc = '6513' OR LOWER(description) LIKE '%title%' OR LOWER(description) LIKE '%escrow%'
+            THEN 1 ELSE 0 
+        END) as real_estate_txn_count,
+        
+        SUM(CASE 
+            WHEN mcc = '4214' OR LOWER(description) LIKE '%moving%'
+            THEN 1 ELSE 0 
+        END) as moving_txn_count
+        
+    FROM customer_transactions
+    GROUP BY customer_id  -- Aggregate all signals per customer
+)
+
+-- STEP 3: Final output - calculate total confidence score and filter
+-- Adds all signal scores together to get overall confidence (0-110 range)
+-- Only returns customers with confidence >= 60 (minimum threshold)
+-- Provides product recommendations based on confidence level
+SELECT 
+    customer_id,
+    'home_purchase' as event_type,
+    
+    -- Total confidence score (sum of all 5 signals)
+    (real_estate_score + moving_score + home_improvement_score + 
+     furniture_score + contractor_score) as confidence_score,
+    
+    -- Convert numeric score to confidence level category
+    CASE 
+        WHEN (real_estate_score + moving_score + home_improvement_score + 
+              furniture_score + contractor_score) >= 90 THEN 'HIGH'
+        WHEN (real_estate_score + moving_score + home_improvement_score + 
+              furniture_score + contractor_score) >= 75 THEN 'MEDIUM-HIGH'
+        WHEN (real_estate_score + moving_score + home_improvement_score + 
+              furniture_score + contractor_score) >= 60 THEN 'MEDIUM'
+        ELSE 'LOW'
+    END as confidence_level,
+    
+    -- Include individual signal scores for transparency/debugging
+    real_estate_score,
+    moving_score,
+    home_improvement_score,
+    furniture_score,
+    contractor_score,
+    
+    -- Event details
+    estimated_purchase_date,
+    total_home_improvement_spend,
+    total_furniture_spend,
+    real_estate_txn_count,
+    moving_txn_count,
+    
+    -- Product recommendations (what to offer this customer)
+    'HELOC' as primary_product,
+    'Home Insurance, Checking Upgrade' as secondary_products,
+    
+    -- Expected conversion rate based on confidence level
+    CASE 
+        WHEN (real_estate_score + moving_score + home_improvement_score + 
+              furniture_score + contractor_score) >= 90 THEN '60-75%'
+        WHEN (real_estate_score + moving_score + home_improvement_score + 
+              furniture_score + contractor_score) >= 75 THEN '45-60%'
+        ELSE '30-45%'
+    END as expected_conversion_rate,
+    
+    GETDATE() as detected_date
+    
+FROM signals
+WHERE (real_estate_score + moving_score + home_improvement_score + 
+       furniture_score + contractor_score) >= 60  -- Only show medium+ confidence
+ORDER BY confidence_score DESC;  -- Highest confidence first
+
+
+/*******************************************************************************
+ * EVENT 2: AUTO PURCHASE / REFINANCE OPPORTUNITY DETECTION
+ * 
+ * Confidence Thresholds:
+ *   - HIGH (90-100%): External auto loan detected (recurring payments)
+ *   - MEDIUM-HIGH (75-89%): Dealership transaction + insurance spike
+ *   - MEDIUM (60-74%): Dealership + DMV registration
+ *
+ * Expected Accuracy: 80-88%
+ * Expected Conversion Rate: 65-80% (external loan), 40-55% (new purchase)
+ * 
+ * KEY INSIGHT: External auto loan payments are the #1 signal - these customers
+ * are paying another lender and can be refinanced to our bank!
+ *******************************************************************************/
+
+-- STEP 1: Get customer transactions from last 60 days
+-- Auto purchases typically show up quickly (DMV, insurance, loan payments)
+-- Shorter window (60 days vs 90) reduces false positives
+WITH customer_transactions AS (
+    SELECT 
+        customer_id,
+        DEPTRANS_POST_DATE as transaction_date,
+        DEPTRANS_AMOUNT as amount,
+        CLEANSED as description,
+        DEPTRANS_TYPE_DESC as txn_type,
+        
+        -- Extract MCC code (same logic as home purchase query)
+        CASE
+            WHEN CHARINDEX('~', REVERSE(REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~'))) > 0
+            THEN SUBSTRING(
+                REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~'),
+                LEN(REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~')) 
+                - CHARINDEX('~', REVERSE(REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~'))) + 2,
+                4
+            )
+            ELSE ''
+        END as mcc
+        
+    FROM SEGEDW.SEG_E0.SAT_SEG_DEP_TRAN
+    WHERE DEPTRANS_POST_DATE >= DATEADD(day, -60, GETDATE())  -- 60-day window
+        AND PROCESS_DATE > '12-12-2025'
+        AND DEPTRANS_AMOUNT > 0
+        AND CLEANSED IS NOT NULL
+        AND DEPTRANS_PAYEE NOT LIKE '%*%'
+),
+
+-- STEP 2: Calculate signal scores
+-- Focus is on EXTERNAL AUTO LOANS - this is a refinance opportunity!
+-- Dealership transactions are secondary (might have paid cash or used external loan)
+signals AS (
+    SELECT 
+        customer_id,
+        
+        -- SIGNAL 1: External auto loan payment (60 points) - HIGHEST PRIORITY!
+        -- Detects if customer is paying Ally, Chase, Toyota Financial, etc.
+        -- This means they financed their car elsewhere → REFINANCE OPPORTUNITY
+        -- This is THE BEST signal because we know they have an active auto loan
+        MAX(CASE 
+            WHEN LOWER(description) LIKE '%ally auto%'
+                OR LOWER(description) LIKE '%ally financial%'
+                OR LOWER(description) LIKE '%capital one auto%'
+                OR LOWER(description) LIKE '%chase auto%'
+                OR LOWER(description) LIKE '%toyota financial%'
+                OR LOWER(description) LIKE '%honda finance%'
+                OR LOWER(description) LIKE '%ford credit%'
+                OR LOWER(description) LIKE '%gm financial%'
+                OR LOWER(description) LIKE '%wells fargo auto%'
+                OR LOWER(description) LIKE '%santander%'
+            THEN 60 ELSE 0 
+        END) as external_loan_score,
+        
+        -- SIGNAL 2: Dealership transaction (40 points)
+        -- Detects car purchase at dealership
+        -- MCC 5511 (new car dealers), 5521 (used car dealers)
+        -- Could be down payment, full purchase, or deposit
+        MAX(CASE 
+            WHEN mcc IN ('5511', '5521')
+                OR LOWER(description) LIKE '%toyota%'
+                OR LOWER(description) LIKE '%honda%'
+                OR LOWER(description) LIKE '%ford%'
+                OR LOWER(description) LIKE '%chevrolet%'
+                OR LOWER(description) LIKE '%chevy%'
+                OR LOWER(description) LIKE '%nissan%'
+                OR LOWER(description) LIKE '%hyundai%'
+                OR LOWER(description) LIKE '%kia%'
+                OR LOWER(description) LIKE '%mazda%'
+                OR LOWER(description) LIKE '%subaru%'
+                OR LOWER(description) LIKE '%carmax%'
+                OR LOWER(description) LIKE '%carvana%'
+                OR LOWER(description) LIKE '%auto dealer%'
+                OR LOWER(description) LIKE '%car dealer%'
+            THEN 40 ELSE 0 
+        END) as dealership_score,
+        
+        -- SIGNAL 3: Auto insurance (15 points)
+        -- New car = new/increased insurance
+        -- MCC 6300 (insurance) + auto-related keywords
+        MAX(CASE 
+            WHEN (mcc = '6300' AND (
+                    LOWER(description) LIKE '%auto%'
+                    OR LOWER(description) LIKE '%vehicle%'
+                    OR LOWER(description) LIKE '%car%'
+                ))
+                OR LOWER(description) LIKE '%geico%'
+                OR LOWER(description) LIKE '%progressive%'
+                OR LOWER(description) LIKE '%state farm%'
+                OR LOWER(description) LIKE '%allstate%'
+            THEN 15 ELSE 0 
+        END) as insurance_score,
+        
+        -- SIGNAL 4: DMV/Vehicle registration (10 points)
+        -- New car requires DMV registration/title fees
+        -- Strong signal but low point value (happens once)
+        MAX(CASE 
+            WHEN LOWER(description) LIKE '%dmv%'
+                OR LOWER(description) LIKE '%dept motor%'
+                OR LOWER(description) LIKE '%department motor%'
+                OR LOWER(description) LIKE '%vehicle registration%'
+                OR LOWER(description) LIKE '%auto registration%'
+            THEN 10 ELSE 0 
+        END) as dmv_score,
+        
+        -- SUPPORTING DETAILS: Calculate average monthly payment
+        -- If we see recurring external loan payments, average them
+        -- Used to estimate total loan balance
+        AVG(CASE 
+            WHEN LOWER(description) LIKE '%ally auto%'
+                OR LOWER(description) LIKE '%capital one auto%'
+                OR LOWER(description) LIKE '%toyota financial%'
+                OR LOWER(description) LIKE '%honda finance%'
+            THEN amount ELSE NULL
+        END) as avg_monthly_payment,
+        
+        -- Get largest dealership transaction (likely down payment or full purchase)
+        MAX(CASE 
+            WHEN mcc IN ('5511', '5521')
+                OR LOWER(description) LIKE '%carmax%'
+                OR LOWER(description) LIKE '%carvana%'
+            THEN amount ELSE 0
+        END) as max_dealership_amount,
+        
+        -- Date of first signal
+        MIN(transaction_date) as first_signal_date,
+        
+        -- Count external loan payments
+        -- If we see 2+ payments, it's DEFINITELY an active loan (very high confidence)
+        COUNT(CASE 
+            WHEN LOWER(description) LIKE '%ally auto%'
+                OR LOWER(description) LIKE '%capital one auto%'
+                OR LOWER(description) LIKE '%toyota financial%'
+            THEN 1 
+        END) as external_loan_payment_count
+        
+    FROM customer_transactions
+    GROUP BY customer_id
+)
+
+-- STEP 3: Final output with product recommendations
+-- External loan customers get "Auto Loan Refinance" (highest priority)
+-- Dealership customers get "Auto Loan" (might have paid cash, need to verify)
+SELECT 
+    customer_id,
+    'auto_purchase' as event_type,
+    
+    -- Total confidence score
+    (external_loan_score + dealership_score + insurance_score + dmv_score) as confidence_score,
+    
+    -- Confidence level (external loan with 2+ payments = HIGH)
+    CASE 
+        WHEN external_loan_score = 60 AND external_loan_payment_count >= 2 THEN 'HIGH'
+        WHEN external_loan_score = 60 THEN 'MEDIUM-HIGH'
+        WHEN (external_loan_score + dealership_score + insurance_score + dmv_score) >= 75 THEN 'MEDIUM-HIGH'
+        WHEN (external_loan_score + dealership_score + insurance_score + dmv_score) >= 60 THEN 'MEDIUM'
+        ELSE 'LOW'
+    END as confidence_level,
+    
+    -- Signal breakdown
+    external_loan_score,
+    dealership_score,
+    insurance_score,
+    dmv_score,
+    
+    -- Event details
+    first_signal_date as estimated_purchase_date,
+    avg_monthly_payment,
+    max_dealership_amount,
+    external_loan_payment_count,
+    
+    -- Estimate loan balance (assume 60-month loan term)
+    -- If monthly payment is $400, estimated balance = $400 × 60 = $24,000
+    CASE 
+        WHEN avg_monthly_payment IS NOT NULL 
+        THEN avg_monthly_payment * 60
+        ELSE NULL 
+    END as estimated_loan_balance,
+    
+    -- Product recommendations
+    -- Refinance if external loan detected, otherwise new auto loan
+    CASE 
+        WHEN external_loan_score = 60 THEN 'Auto Loan Refinance'
+        ELSE 'Auto Loan'
+    END as primary_product,
+    
+    'Auto Insurance, Gap Insurance' as secondary_products,
+    
+    -- Expected conversion rate
+    CASE 
+        WHEN external_loan_score = 60 AND external_loan_payment_count >= 2 THEN '65-80%'
+        WHEN external_loan_score = 60 THEN '50-65%'
+        WHEN (external_loan_score + dealership_score + insurance_score + dmv_score) >= 75 THEN '40-55%'
+        ELSE '25-40%'
+    END as expected_conversion_rate,
+    
+    GETDATE() as detected_date
+    
+FROM signals
+WHERE (external_loan_score + dealership_score + insurance_score + dmv_score) >= 60
+ORDER BY confidence_score DESC, external_loan_score DESC;  -- Prioritize external loans
+
+
+/*******************************************************************************
+ * EVENT 3: NEW BABY DETECTION
+ * 
+ * Confidence Thresholds:
+ *   - HIGH (90-100%): Recurring daycare + hospital OR life insurance
+ *   - MEDIUM-HIGH (75-89%): Hospital + baby stores + life insurance
+ *   - MEDIUM (60-74%): Baby stores + pediatrician + life insurance
+ *
+ * Expected Accuracy: 82-88%
+ * Expected Conversion Rate: 55-70% (HIGH), 40-55% (MEDIUM-HIGH)
+ * 
+ * KEY INSIGHT: Recurring daycare payments are the #1 signal - they indicate
+ * baby is already born and parent is back to work. Hospital alone could be
+ * any medical event, but hospital + daycare + life insurance = definite baby!
+ *******************************************************************************/
+
+-- STEP 1: Get customer transactions from last 180 days (6 months)
+-- Longer window because baby signals appear over time:
+--   - Hospital: At birth (month 0)
+--   - Baby stores: Months 0-3
+--   - Daycare: Starts at months 2-6
+--   - Life insurance: Often purchased during pregnancy or at birth
+WITH customer_transactions AS (
+    SELECT 
+        customer_id,
+        DEPTRANS_POST_DATE as transaction_date,
+        DEPTRANS_AMOUNT as amount,
+        CLEANSED as description,
+        DEPTRANS_TYPE_DESC as txn_type,
+        
+        -- Extract MCC code (same logic as previous queries)
+        CASE
+            WHEN CHARINDEX('~', REVERSE(REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~'))) > 0
+            THEN SUBSTRING(
+                REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~'),
+                LEN(REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~')) 
+                - CHARINDEX('~', REVERSE(REPLACE(REPLACE(REPLACE(REPLACE(DEPTRANS_PAYEE, ' ', ''), N'~', N'~'), N'-', N'~'), N'_', N'~'))) + 2,
+                4
+            )
+            ELSE ''
+        END as mcc
+        
+    FROM SEGEDW.SEG_E0.SAT_SEG_DEP_TRAN
+    WHERE DEPTRANS_POST_DATE >= DATEADD(day, -180, GETDATE())  -- 6-month window
+        AND PROCESS_DATE > '12-12-2025'
+        AND DEPTRANS_AMOUNT > 0
+        AND CLEANSED IS NOT NULL
+        AND DEPTRANS_PAYEE NOT LIKE '%*%'
+),
+
+-- STEP 2: Calculate signal scores
+-- Focus on RECURRING daycare (strongest signal) + supporting indicators
+signals AS (
+    SELECT 
+        customer_id,
+        
+        -- SIGNAL 1: Daycare payments - STRONGEST SIGNAL (50 points if recurring)
+        -- MCC 8351 (Child Care Services)
+        -- Requires 2+ payments to avoid false positives
+        -- Recurring means baby is real and parent returned to work
+        -- This is the MOST RELIABLE signal for new baby
+        CASE 
+            WHEN COUNT(CASE 
+                WHEN mcc = '8351'
+                    OR LOWER(description) LIKE '%daycare%'
+                    OR LOWER(description) LIKE '%day care%'
+                    OR LOWER(description) LIKE '%childcare%'
+                    OR LOWER(description) LIKE '%child care%'
+                    OR LOWER(description) LIKE '%kindercare%'
+                    OR LOWER(description) LIKE '%learning center%'
+                    OR LOWER(description) LIKE '%preschool%'
+                    OR LOWER(description) LIKE '%montessori%'
+                THEN 1 
+            END) >= 2  -- Must see 2+ payments (proves it's recurring)
+            THEN 50 ELSE 0 
+        END as daycare_score,
+        
+        -- SIGNAL 2: Life insurance (30 points)
+        -- New parents often buy life insurance
+        -- MCC 6300 (insurance) + keywords "life" or "term"
+        -- Also checks for major life insurance companies
+        MAX(CASE 
+            WHEN (mcc = '6300' AND (
+                    LOWER(description) LIKE '%life%'
+                    OR LOWER(description) LIKE '%term%'
+                ))
+                OR LOWER(description) LIKE '%mass mutual%'
+                OR LOWER(description) LIKE '%massmutual%'
+                OR LOWER(description) LIKE '%northwestern mutual%'
+                OR LOWER(description) LIKE '%new york life%'
+                OR LOWER(description) LIKE '%prudential life%'
+                OR LOWER(description) LIKE '%metlife%'
+            THEN 30 ELSE 0 
+        END) as life_insurance_score,
+        
+        -- SIGNAL 3: Hospital charges (25 points if large amount)
+        -- MCC 8062 (Hospitals)
+        -- Only counts if amount > $1000 (birth typically costs $2k-$10k+)
+        -- Hospital alone is weak signal (could be any medical event)
+        -- But hospital + other signals = strong evidence
+        MAX(CASE 
+            WHEN (mcc = '8062' AND amount > 1000)
+                OR (LOWER(description) LIKE '%hospital%' AND amount > 1000)
+                OR LOWER(description) LIKE '%maternity%'
+                OR LOWER(description) LIKE '%birthing%'
+                OR LOWER(description) LIKE '%obstetric%'
+            THEN 25 ELSE 0 
+        END) as hospital_score,
+        
+        -- SIGNAL 4: Baby stores (15 points)
+        -- MCC 5641 (Children's and Infants' Wear)
+        -- Buy Buy Baby, Babies R Us, etc.
+        -- Parents stock up on baby supplies
+        MAX(CASE 
+            WHEN mcc = '5641'
+                OR LOWER(description) LIKE '%buy buy baby%'
+                OR LOWER(description) LIKE '%buybuy baby%'
+                OR LOWER(description) LIKE '%babies r us%'
+                OR LOWER(description) LIKE '%baby store%'
+                OR LOWER(description) LIKE '%infant%'
+            THEN 15 ELSE 0 
+        END) as baby_store_score,
+        
+        -- SIGNAL 5: Pediatrician visits (10 points)
+        -- Regular checkups for baby
+        -- Supporting signal (weak alone, strong with others)
+        MAX(CASE 
+            WHEN LOWER(description) LIKE '%pediatric%'
+                OR LOWER(description) LIKE '%pediatrician%'
+                OR LOWER(description) LIKE '%children clinic%'
+                OR LOWER(description) LIKE '%childrens clinic%'
+            THEN 10 ELSE 0 
+        END) as pediatrician_score,
+        
+        -- SUPPORTING DETAILS: Estimate birth date
+        -- Use earliest hospital transaction as proxy for birth date
+        MIN(CASE 
+            WHEN mcc = '8062' OR LOWER(description) LIKE '%hospital%'
+            THEN transaction_date 
+        END) as estimated_birth_date,
+        
+        -- Calculate total daycare spending
+        SUM(CASE 
+            WHEN mcc = '8351' OR LOWER(description) LIKE '%daycare%' OR LOWER(description) LIKE '%childcare%'
+            THEN amount ELSE 0 
+        END) as total_daycare_spend,
+        
+        -- Count daycare payments (important to show it's recurring)
+        COUNT(CASE 
+            WHEN mcc = '8351' OR LOWER(description) LIKE '%daycare%' OR LOWER(description) LIKE '%childcare%'
+            THEN 1 
+        END) as daycare_payment_count,
+        
+        -- Calculate total hospital charges
+        SUM(CASE 
+            WHEN mcc = '8062' OR LOWER(description) LIKE '%hospital%'
+            THEN amount ELSE 0 
+        END) as total_hospital_charges
+        
+    FROM customer_transactions
+    GROUP BY customer_id
+)
+
+-- STEP 3: Final output with product recommendations
+-- 529 College Savings Plan is primary offer (start saving for college early!)
+-- Life Insurance if not already detected
+-- Kids Savings Account to teach financial literacy
+SELECT 
+    customer_id,
+    'new_baby' as event_type,
+    
+    -- Total confidence score (0-130 max)
+    (daycare_score + life_insurance_score + hospital_score + 
+     baby_store_score + pediatrician_score) as confidence_score,
+    
+    -- Confidence level
+    CASE 
+        WHEN (daycare_score + life_insurance_score + hospital_score + 
+              baby_store_score + pediatrician_score) >= 90 THEN 'HIGH'
+        WHEN (daycare_score + life_insurance_score + hospital_score + 
+              baby_store_score + pediatrician_score) >= 75 THEN 'MEDIUM-HIGH'
+        WHEN (daycare_score + life_insurance_score + hospital_score + 
+              baby_store_score + pediatrician_score) >= 60 THEN 'MEDIUM'
+        ELSE 'LOW'
+    END as confidence_level,
+    
+    -- Signal breakdown
+    daycare_score,
+    life_insurance_score,
+    hospital_score,
+    baby_store_score,
+    pediatrician_score,
+    
+    -- Event details
+    estimated_birth_date,
+    daycare_payment_count,  -- Shows if it's recurring (2+ is strong signal)
+    total_daycare_spend,
+    total_hospital_charges,
+    
+    -- Product recommendations
+    '529 College Savings Plan' as primary_product,
+    'Life Insurance, Kids Savings Account' as secondary_products,
+    
+    -- Expected conversion rate
+    CASE 
+        WHEN (daycare_score + life_insurance_score + hospital_score + 
+              baby_store_score + pediatrician_score) >= 90 THEN '55-70%'
+        WHEN (daycare_score + life_insurance_score + hospital_score + 
+              baby_store_score + pediatrician_score) >= 75 THEN '40-55%'
+        ELSE '25-40%'
+    END as expected_conversion_rate,
+    
+    GETDATE() as detected_date
+    
+FROM signals
+WHERE (daycare_score + life_insurance_score + hospital_score + 
+       baby_store_score + pediatrician_score) >= 60  -- Only medium+ confidence
+ORDER BY confidence_score DESC;
+
+
+/*******************************************************************************
+ * USAGE INSTRUCTIONS
+ * 
+ * 1. Run each query separately to test
+ * 2. Validate results against known events (customers who actually bought homes, etc.)
+ * 3. Adjust confidence thresholds based on validation results
+ * 4. Consider combining all 3 queries with UNION ALL for single daily run
+ * 5. Store results in a table like: DATASCIENCE.tier3_event_detections
+ * 
+ * NEXT STEPS:
+ * - Build queries for remaining 7 events (Home Renovation, Business Formation, etc.)
+ * - Create automated daily detection job
+ * - Build BDO alert system
+ * - Track conversion rates and refine thresholds
+ * 
+ *******************************************************************************/
