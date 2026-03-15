@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Next Best Product · First National Bank</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f4f0; --bg2:#edecea; --surface:#fff;
+  --navy:#0f1e35; --navy2:#1a3050;
+  --gold:#b8860b; --gold-l:#d4a017; --gold-bg:#fdf6e3;
+  --teal:#0e7a6e; --teal-bg:#e8f5f3;
+  --red:#c0392b; --red-bg:#fdf0ee;
+  --orange:#c65e1a; --orange-bg:#fef3eb;
+  --green:#1a7a4a; --green-bg:#e8f5ee;
+  --border:#e0ddd6; --border2:#d0cdc4;
+  --t1:#1a1a1a; --t2:#4a4a4a; --t3:#888880; --t4:#b0ada6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--t1);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* NAV */
+.topnav{background:var(--navy);height:52px;display:flex;align-items:center;padding:0 24px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.08);}
+.brand{display:flex;align-items:center;gap:10px;margin-right:36px;}
+.brand-mark{width:28px;height:28px;background:linear-gradient(135deg,var(--gold-l),var(--teal));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.brand-name{font-family:'Playfair Display',serif;font-size:16px;color:#fff;}
+.brand-name span{color:var(--gold-l);}
+.nav-tabs{display:flex;height:100%;gap:2px;}
+.nav-tab{height:100%;padding:0 18px;display:flex;align-items:center;gap:7px;font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;border:none;background:none;font-family:'IBM Plex Sans',sans-serif;white-space:nowrap;}
+.nav-tab:hover{color:rgba(255,255,255,0.8);}
+.nav-tab.active{color:#fff;border-bottom:2px solid var(--gold-l);}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.live-chip{display:flex;align-items:center;gap:6px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,0.4);}
+.live-dot{width:6px;height:6px;background:#4caf82;border-radius:50%;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.user-pill{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,0.55);}
+.avatar{width:28px;height:28px;background:rgba(255,255,255,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;}
+
+/* VIEWS */
+.view{display:none;flex:1;overflow:hidden;}
+.view.active{display:flex;flex-direction:column;}
+
+/* ── BDO ── */
+.bdo-shell{display:grid;grid-template-columns:310px 1fr;flex:1;overflow:hidden;}
+.call-list-panel{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.panel-header{padding:16px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.panel-title{font-family:'Playfair Display',serif;font-size:17px;color:var(--navy);margin-bottom:2px;}
+.panel-meta{font-size:12px;color:var(--t3);margin-bottom:10px;}
+.filter-row{display:flex;gap:5px;flex-wrap:wrap;}
+.fchip{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid var(--border);color:var(--t3);cursor:pointer;background:none;font-family:'IBM Plex Sans',sans-serif;transition:all .12s;}
+.fchip:hover{border-color:var(--navy);color:var(--navy);}
+.fchip.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.lead-rows{flex:1;overflow-y:auto;}
+.lead-row{padding:12px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;display:flex;gap:10px;align-items:flex-start;position:relative;}
+.lead-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 2px 2px 0;}
+.lead-row.urgent::before{background:var(--red);}
+.lead-row.high::before{background:var(--orange);}
+.lead-row.medium::before{background:var(--gold);}
+.lead-row.normal::before{background:var(--border2);}
+.lead-row:hover{background:var(--bg);}
+.lead-row.selected{background:var(--gold-bg);}
+.lead-priority-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t4);width:18px;flex-shrink:0;padding-top:2px;}
+.lead-row-body{flex:1;min-width:0;}
+.lead-row-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+.lead-row-product{font-size:12px;color:var(--t2);margin-bottom:4px;}
+.lead-row-tags{display:flex;gap:4px;}
+.ltag{font-size:10px;font-weight:500;padding:2px 6px;border-radius:3px;font-family:'IBM Plex Mono',monospace;}
+.ltag-event{background:var(--red-bg);color:var(--red);}
+.ltag-comp{background:var(--orange-bg);color:var(--orange);}
+.ltag-prop{background:var(--teal-bg);color:var(--teal);}
+.ltag-adj{background:var(--bg2);color:var(--t3);}
+.lead-row-score{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;flex-shrink:0;padding-top:2px;}
+.score-urgent{color:var(--red);}
+.score-high{color:var(--orange);}
+.score-medium{color:var(--gold);}
+.score-normal{color:var(--t3);}
+.call-card-panel{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+.call-card-scroll{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:16px;}
+.call-card-scroll>*{flex-shrink:0;}
+.call-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--t3);font-size:14px;}
+.action-bar{background:var(--surface);border-top:1px solid var(--border);padding:12px 28px;display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.btn{padding:8px 16px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:'IBM Plex Sans',sans-serif;transition:all .12s;}
+.btn-primary{background:var(--navy);color:#fff;}
+.btn-primary:hover{background:var(--navy2);}
+.btn-success{background:var(--green-bg);color:var(--green);border:1px solid rgba(26,122,74,0.2);}
+.btn-neutral{background:var(--bg);color:var(--t2);border:1px solid var(--border);}
+.btn-neutral:hover{border-color:var(--navy);color:var(--navy);}
+.btn-warn{background:var(--red-bg);color:var(--red);border:1px solid rgba(192,57,43,0.2);}
+.next-hint{margin-left:auto;font-size:12px;color:var(--t3);}
+
+/* Call card components */
+.cust-header{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px;}
+.cust-header-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.urgency-badge{font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:4px;margin-bottom:7px;display:inline-block;}
+.ub-urgent{background:var(--red-bg);color:var(--red);border:1px solid rgba(192,57,43,0.2);}
+.ub-high{background:var(--orange-bg);color:var(--orange);border:1px solid rgba(198,94,26,0.2);}
+.ub-medium{background:var(--gold-bg);color:var(--gold);border:1px solid rgba(184,134,11,0.2);}
+.cust-name-big{font-family:'Playfair Display',serif;font-size:24px;color:var(--navy);margin-bottom:3px;}
+.cust-meta{font-size:12px;color:var(--t3);line-height:1.6;}
+.score-block{text-align:right;}
+.score-big{font-family:'IBM Plex Mono',monospace;font-size:38px;font-weight:500;line-height:1;}
+.score-big.urgent{color:var(--red);}
+.score-big.high{color:var(--orange);}
+.score-big.medium{color:var(--gold);}
+.score-big.normal{color:var(--t3);}
+.score-lbl{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-top:3px;}
+.conv-prob{font-size:12px;color:var(--teal);font-weight:500;margin-top:5px;}
+.holdings-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.holding{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid;}
+.h-has{border-color:rgba(14,122,110,0.3);color:var(--teal);background:var(--teal-bg);}
+.h-miss{border-color:rgba(192,57,43,0.25);color:var(--red);background:var(--red-bg);}
+.script-card{background:var(--navy);border-radius:10px;padding:22px 26px;position:relative;overflow:hidden;}
+.script-card::before{content:'';position:absolute;top:-50px;right:-50px;width:160px;height:160px;background:rgba(212,160,23,0.05);border-radius:50%;}
+.script-lbl{font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:500;color:rgba(255,255,255,0.3);letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.script-lbl::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.07);}
+.script-block{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.script-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.script-step{display:flex;gap:12px;align-items:flex-start;}
+.step-num{width:21px;height:21px;border-radius:50%;background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.3);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--gold-l);flex-shrink:0;margin-top:2px;}
+.step-title{font-size:10px;font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,0.3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.step-text{font-size:13px;color:rgba(255,255,255,0.82);line-height:1.65;}
+.step-text em{color:var(--gold-l);font-style:normal;font-weight:500;}
+.step-text strong{color:#fff;font-weight:600;}
+.obj-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px;}
+.obj-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:7px;padding:9px 11px;}
+.obj-q{font-size:11px;color:rgba(255,255,255,0.38);margin-bottom:4px;font-style:italic;}
+.obj-a{font-size:11px;color:rgba(255,255,255,0.72);line-height:1.5;}
+.coll-section{background:var(--surface);border:1px solid var(--border);border-radius:9px;overflow:visible;}
+.coll-header{padding:14px 22px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);user-select:none;transition:background .1s;border-radius:9px;}
+.coll-header:hover{background:var(--bg);}
+.coll-arrow{font-size:16px;color:var(--t3);transition:transform .2s;}
+.coll-body{padding:18px 22px 20px;border-top:1px solid var(--border);display:none;overflow:visible;}
+.why-text{font-size:13px;color:var(--t2);line-height:1.7;}
+.why-text strong{color:var(--navy);}
+.ev-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.ev-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--t2);}
+.ev-chip-val{font-family:'IBM Plex Mono',monospace;font-weight:500;color:var(--navy);}
+.tier-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.tier-box{text-align:center;padding:11px 8px;background:var(--bg);border:1px solid var(--border);border-radius:7px;}
+.tier-val{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:500;margin-bottom:3px;}
+.tier-name{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;}
+
+/* ── SPECIALIST ── */
+.spec-shell{display:grid;grid-template-columns:280px 1fr;flex:1;overflow:hidden;}
+.spec-sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.spec-prod-header{padding:14px 14px 10px;border-bottom:1px solid var(--border);}
+.spec-prod-tabs{display:flex;flex-direction:column;gap:2px;}
+.spec-tab{padding:9px 12px;border-radius:7px;cursor:pointer;font-size:13px;color:var(--t2);display:flex;align-items:center;justify-content:space-between;transition:all .12s;border:1px solid transparent;}
+.spec-tab:hover{background:var(--bg);color:var(--navy);}
+.spec-tab.active{background:var(--navy);color:#fff;}
+.spec-count{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 6px;border-radius:10px;background:rgba(255,255,255,0.15);}
+.spec-tab:not(.active) .spec-count{background:var(--bg2);color:var(--t3);}
+.spec-lead-list{flex:1;overflow-y:auto;}
+.spec-lead-row{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.spec-lead-row:hover{background:var(--bg);}
+.spec-lead-row.selected{background:var(--teal-bg);border-left:3px solid var(--teal);padding-left:11px;}
+.spec-row-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px;}
+.spec-row-detail{font-size:11px;color:var(--t3);font-family:'IBM Plex Mono',monospace;}
+.spec-main{display:flex;flex-direction:column;overflow:hidden;}
+.spec-scroll{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:16px;}
+.comp-box{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);border-radius:10px;padding:20px 24px;color:#fff;display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;}
+.comp-lbl{font-size:10px;font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,0.35);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.comp-bank{font-size:13px;font-weight:600;color:rgba(255,255,255,0.65);margin-bottom:5px;}
+.comp-rate{font-family:'Playfair Display',serif;font-size:30px;color:rgba(255,255,255,0.45);}
+.comp-rate.ours{color:var(--gold-l);}
+.comp-arrow{font-size:22px;color:rgba(255,255,255,0.18);text-align:center;}
+.savings-badge{background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.3);border-radius:7px;padding:9px 14px;text-align:center;margin-top:7px;}
+.savings-num{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold-l);}
+.savings-sub{font-size:10px;color:rgba(255,255,255,0.38);font-family:'IBM Plex Mono',monospace;margin-top:1px;}
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:18px 20px;}
+.sec-lbl{font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:500;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;}
+
+/* ── RM ── */
+.rm-shell{flex:1;display:grid;grid-template-columns:280px 1fr;overflow:hidden;}
+.rm-portfolio{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.portfolio-header{padding:16px 18px;border-bottom:1px solid var(--border);}
+.port-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
+.pstat{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 11px;}
+.pstat-num{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:500;color:var(--navy);}
+.pstat-lbl{font-size:10px;color:var(--t3);margin-top:1px;}
+.cust-list{flex:1;overflow-y:auto;}
+.cust-row{padding:12px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;display:flex;justify-content:space-between;align-items:center;}
+.cust-row:hover{background:var(--bg);}
+.cust-row.selected{background:var(--gold-bg);border-left:3px solid var(--gold);padding-left:15px;}
+.cust-nm{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+.cust-prods{font-size:11px;color:var(--t3);}
+.cust-signal{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.sig-dot{width:8px;height:8px;border-radius:50%;}
+.sig-count{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);}
+.rm-main{overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:16px;}
+.rm-cust-name{font-family:'Playfair Display',serif;font-size:26px;color:var(--navy);}
+.rm-bio{font-size:13px;color:var(--t3);line-height:1.65;margin-top:3px;}
+.opp-list{display:flex;flex-direction:column;gap:9px;}
+.opp-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .12s;}
+.opp-card:hover{border-color:var(--navy);}
+.opp-card.primary{border-color:rgba(192,57,43,0.3);background:var(--red-bg);}
+.opp-card.secondary{border-color:rgba(198,94,26,0.25);background:var(--orange-bg);}
+.opp-icon{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.opp-body{flex:1;}
+.opp-prod{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+.opp-why{font-size:11px;color:var(--t2);}
+.opp-meta{text-align:right;}
+.opp-score{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;margin-bottom:2px;}
+.opp-act{font-size:11px;color:var(--teal);font-weight:500;cursor:pointer;}
+
+/* ── MANAGER ── */
+.mgr-shell{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:20px;}
+.mgr-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+.mgr-stat{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:15px 16px;}
+.mgr-stat-num{font-family:'Playfair Display',serif;font-size:24px;color:var(--navy);margin-bottom:3px;}
+.mgr-stat-lbl{font-size:11px;color:var(--t3);line-height:1.4;}
+.mgr-stat-delta{font-size:11px;font-family:'IBM Plex Mono',monospace;margin-top:5px;}
+.d-up{color:var(--green);}.d-dn{color:var(--red);}
+.mgr-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.mgr-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:18px 20px;}
+.mgr-card-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.mgr-card-link{font-size:11px;color:var(--teal);font-weight:400;cursor:pointer;}
+.bar-row{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+.bar-lbl{font-size:12px;color:var(--t2);width:110px;flex-shrink:0;}
+.bar-track{flex:1;height:22px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,0.85);font-weight:500;}
+.bar-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t3);width:34px;text-align:right;}
+.aq-list{display:flex;flex-direction:column;gap:7px;}
+.aq-item{display:flex;gap:10px;padding:11px 12px;background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--border2);border-radius:7px;cursor:pointer;transition:all .1s;}
+.aq-item:hover{background:var(--surface);}
+.aq-item.red{border-left-color:var(--red);}
+.aq-item.orange{border-left-color:var(--orange);}
+.aq-item.teal{border-left-color:var(--teal);}
+.aq-icon{font-size:15px;margin-top:1px;}
+.aq-name{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:2px;}
+.aq-desc{font-size:11px;color:var(--t2);}
+.aq-time{font-size:10px;color:var(--t3);margin-top:3px;font-family:'IBM Plex Mono',monospace;}
+.bdo-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.bdo-tbl th{text-align:left;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;padding:0 9px 9px;border-bottom:1px solid var(--border);font-weight:400;}
+.bdo-tbl td{padding:10px 9px;border-bottom:1px solid var(--border);color:var(--t2);}
+.bdo-tbl tr:last-child td{border-bottom:none;}
+.bdo-tbl tr:hover td{background:var(--bg);}
+.td-name{font-weight:600;color:var(--navy)!important;}
+.td-warn{color:var(--red)!important;font-weight:500;}
+.mini-bar{height:4px;background:var(--bg2);border-radius:2px;overflow:hidden;margin-top:3px;}
+.mini-fill{height:100%;border-radius:2px;}
+
+/* ── ADMIN ── */
+.admin-shell{display:grid;grid-template-columns:200px 1fr;flex:1;overflow:hidden;}
+.admin-nav{background:var(--surface);border-right:1px solid var(--border);padding:14px 10px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;}
+.admin-nav-group{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t4);text-transform:uppercase;letter-spacing:.1em;padding:12px 10px 5px;}
+.admin-nav-item{padding:8px 10px;border-radius:6px;font-size:12px;color:var(--t2);cursor:pointer;transition:all .1s;}
+.admin-nav-item:hover{background:var(--bg);color:var(--navy);}
+.admin-nav-item.active{background:var(--navy);color:#fff;font-weight:500;}
+.admin-content{overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:20px;}
+.admin-panel{display:none;flex-direction:column;gap:20px;}
+.admin-panel.active{display:flex;}
+.admin-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--navy);margin-bottom:3px;}
+.admin-desc{font-size:12px;color:var(--t3);}
+.acard{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:18px 20px;}
+.acard-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:12px;}
+.a2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+/* matrix */
+.matrix{display:grid;grid-template-columns:110px repeat(5,1fr);gap:4px;font-size:11px;}
+.mh{padding:6px 4px;text-align:center;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);}
+.ml{padding:7px 6px;font-size:11px;color:var(--t2);display:flex;align-items:center;}
+.mc{padding:7px 4px;text-align:center;border-radius:5px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;transition:all .1s;}
+.mc:hover{transform:scale(1.06);}
+.mc90{background:rgba(14,122,110,0.12);color:var(--teal);border:1px solid rgba(14,122,110,0.2);}
+.mc70{background:rgba(184,134,11,0.12);color:var(--gold);border:1px solid rgba(184,134,11,0.2);}
+.mc50{background:var(--bg2);color:var(--t3);border:1px solid var(--border);}
+.mc0{background:transparent;color:var(--t4);font-size:9px;}
+/* sliders */
+.slider-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
+.slider-row:last-child{border-bottom:none;}
+.slider-lbl-block{width:160px;flex-shrink:0;}
+.slider-name{font-size:12px;font-weight:500;color:var(--navy);}
+.slider-desc{font-size:11px;color:var(--t3);margin-top:1px;}
+input[type="range"]{-webkit-appearance:none;flex:1;height:4px;border-radius:2px;outline:none;cursor:pointer;background:linear-gradient(to right,var(--navy) var(--pct,50%),var(--bg2) var(--pct,50%));}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--navy);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.slider-val{width:42px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:var(--navy);text-align:right;}
+/* toggles */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-name{font-size:12px;font-weight:500;color:var(--navy);}
+.toggle-desc{font-size:11px;color:var(--t3);margin-top:1px;}
+.tog{position:relative;width:38px;height:21px;flex-shrink:0;}
+.tog input{display:none;}
+.tog-track{position:absolute;inset:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;cursor:pointer;transition:all .2s;}
+.tog input:checked+.tog-track{background:var(--teal);border-color:var(--teal);}
+.tog-track::after{content:'';position:absolute;top:2px;left:2px;width:15px;height:15px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.tog input:checked+.tog-track::after{transform:translateX(17px);}
+/* event catalog */
+.event-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ev-cat-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .12s;}
+.ev-cat-card:hover{border-color:var(--navy);}
+.ev-cat-card.active{border-color:rgba(14,122,110,0.4);background:var(--teal-bg);}
+.ev-cat-icon{font-size:18px;}
+.ev-cat-name{font-size:12px;font-weight:600;color:var(--navy);}
+.ev-cat-meta{font-size:10px;color:var(--t3);font-family:'IBM Plex Mono',monospace;margin-top:1px;}
+.ev-cat-mult{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--orange);font-weight:500;}
+/* model cards */
+.model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.model-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.model-name{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:8px;}
+.model-auc{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.auc-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.auc-fill{height:100%;border-radius:3px;background:var(--teal);}
+.auc-val{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);width:36px;text-align:right;}
+.model-meta{font-size:10px;color:var(--t3);font-family:'IBM Plex Mono',monospace;}
+/* routing table */
+.routing-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.routing-tbl th{text-align:left;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;padding:0 10px 8px;border-bottom:1px solid var(--border);font-weight:400;}
+.routing-tbl td{padding:10px;border-bottom:1px solid var(--border);color:var(--t2);}
+.routing-tbl tr:last-child td{border-bottom:none;}
+.routing-tbl tr:hover td{background:var(--bg);}
+/* pipeline */
+.pipeline-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.pipe-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.pipe-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;color:var(--navy);margin-bottom:3px;}
+.pipe-lbl{font-size:11px;color:var(--t3);}
+.pipe-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:8px;}
+.pipe-fill{height:100%;border-radius:3px;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="brand">
+    <div class="brand-mark">⬡</div>
+    <div class="brand-name">Next Best <span>Product</span></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('bdo',this)"><span>📋</span> BDO Call List</button>
+    <button class="nav-tab" onclick="showTab('specialist',this)"><span>🎯</span> Product Specialist</button>
+    <button class="nav-tab" onclick="showTab('rm',this)"><span>🤝</span> Relationship Manager</button>
+    <button class="nav-tab" onclick="showTab('manager',this)"><span>📊</span> Manager Dashboard</button>
+    <button class="nav-tab" onclick="showTab('marketing',this)"><span>📢</span> Marketing Strategy</button>
+    <button class="nav-tab" onclick="showTab('admin',this)"><span>⚙</span> Admin Controls</button>
+  </div>
+  <div class="nav-right">
+    <div class="live-chip"><div class="live-dot"></div> 2,847 leads · 4 campaigns · live</div>
+    <div class="user-pill"><div class="avatar">SK</div> S. Kumar</div>
+  </div>
+</nav>
+
+<!-- ═══════════ BDO VIEW ═══════════ -->
+<div class="view active" id="v-bdo">
+  <div class="bdo-shell">
+    <div class="call-list-panel">
+      <div class="panel-header">
+        <div class="panel-title">Today's Call List</div>
+        <div class="panel-meta">Sat, Feb 28 · 28 leads · Sarah Okonkwo</div>
+        <div class="filter-row">
+          <button class="fchip on" onclick="fc(this)">All</button>
+          <button class="fchip" onclick="fc(this)">🔴 Urgent</button>
+          <button class="fchip" onclick="fc(this)">🏠 Home</button>
+          <button class="fchip" onclick="fc(this)">🚗 Auto</button>
+          <button class="fchip" onclick="fc(this)">💳 Credit</button>
+        </div>
+      </div>
+      <div class="lead-rows" id="bdo-rows"></div>
+    </div>
+    <div class="call-card-panel">
+      <div class="call-card-scroll" id="bdo-card"><div class="call-empty">← Select a lead to view call script</div></div>
+      <div class="action-bar" id="bdo-actions" style="display:none">
+        <button class="btn btn-primary" onclick="logContacted()">📞 Log as Contacted</button>
+        <button class="btn btn-success" onclick="markConverted()">✅ Converted</button>
+        <button class="btn btn-neutral">📅 Call Back Later</button>
+        <button class="btn btn-neutral">↗ Refer to Specialist</button>
+        <button class="btn btn-warn" onclick="markNotInterested()">✗ Not Interested</button>
+        <div class="next-hint" id="bdo-next"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SPECIALIST VIEW ═══════════ -->
+<div class="view" id="v-specialist">
+  <div class="spec-shell">
+    <div class="spec-sidebar">
+      <div class="spec-prod-header">
+        <div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">My Products</div>
+        <div class="spec-prod-tabs" id="spec-prod-tabs"></div>
+      </div>
+      <div class="spec-lead-list" id="spec-lead-list"></div>
+    </div>
+    <div class="spec-main">
+      <div class="spec-scroll" id="spec-detail"><div class="call-empty">← Select a customer</div></div>
+      <div class="action-bar" id="spec-actions" style="display:none">
+        <button class="btn btn-primary">📞 Log as Contacted</button>
+        <button class="btn btn-success">✅ Application Started</button>
+        <button class="btn btn-neutral">📅 Call Back</button>
+        <button class="btn btn-warn">✗ Not Interested</button>
+        <div class="next-hint" id="spec-next"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ RM VIEW ═══════════ -->
+<div class="view" id="v-rm">
+  <div class="rm-shell">
+    <div class="rm-portfolio">
+      <div class="portfolio-header">
+        <div class="panel-title">My Portfolio</div>
+        <div class="panel-meta" style="margin-bottom:0">David Kim · 142 customers</div>
+        <div class="port-stats">
+          <div class="pstat"><div class="pstat-num" style="color:var(--red)">12</div><div class="pstat-lbl">Urgent signals</div></div>
+          <div class="pstat"><div class="pstat-num">38</div><div class="pstat-lbl">Opportunities</div></div>
+          <div class="pstat"><div class="pstat-num" style="color:var(--teal)">2.8</div><div class="pstat-lbl">Avg products</div></div>
+          <div class="pstat"><div class="pstat-num">31%</div><div class="pstat-lbl">Conv. rate MTD</div></div>
+        </div>
+      </div>
+      <div class="cust-list" id="rm-cust-list"></div>
+    </div>
+    <div class="rm-main" id="rm-detail"><div class="call-empty">← Select a customer</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ MANAGER VIEW ═══════════ -->
+<div class="view" id="v-manager">
+  <div class="mgr-shell">
+    <div class="mgr-stats">
+      <div class="mgr-stat"><div class="mgr-stat-num">2,847</div><div class="mgr-stat-lbl">Leads generated today</div><div class="mgr-stat-delta d-up">↑ +12% vs yesterday</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num" style="color:var(--red)">143</div><div class="mgr-stat-lbl">Urgent event alerts</div><div class="mgr-stat-delta d-dn">38 uncontacted ⚠</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num" style="color:var(--teal)">24.7%</div><div class="mgr-stat-lbl">Overall conv. rate MTD</div><div class="mgr-stat-delta d-up">↑ +3.2pts vs last mo.</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num" style="color:var(--green)">58.3%</div><div class="mgr-stat-lbl">Event lead conv. rate</div><div class="mgr-stat-delta d-up">↑ On target</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num">$1.2M</div><div class="mgr-stat-lbl">Est. annual rev. MTD</div><div class="mgr-stat-delta d-up">↑ Tracking to plan</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num" style="color:var(--orange)">342</div><div class="mgr-stat-lbl">DNC suppressed today</div><div class="mgr-stat-delta">1,847 rerouted to email</div></div>
+    </div>
+    <div class="mgr-grid">
+      <div class="mgr-card">
+        <div class="mgr-card-title">Lead Volume by Type <span class="mgr-card-link">View all →</span></div>
+        <div class="bar-row"><div class="bar-lbl">Event-triggered</div><div class="bar-track"><div class="bar-fill" style="width:24%;background:var(--red)">143</div></div><div class="bar-count">143</div></div>
+        <div class="bar-row"><div class="bar-lbl">Competitive</div><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--orange)">388</div></div><div class="bar-count">388</div></div>
+        <div class="bar-row"><div class="bar-lbl">Propensity</div><div class="bar-track"><div class="bar-fill" style="width:52%;background:var(--teal)">724</div></div><div class="bar-count">724</div></div>
+        <div class="bar-row"><div class="bar-lbl">Adjacency</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--gold-l)">1,592</div></div><div class="bar-count">1,592</div></div>
+      </div>
+      <div class="mgr-card">
+        <div class="mgr-card-title">Urgent Alert Queue <span class="mgr-card-link" onclick="assignAll()">Assign all →</span></div>
+        <div class="aq-list" id="mgr-alert-queue"></div>
+      </div>
+      <div class="mgr-card" style="grid-column:1/-1">
+        <div class="mgr-card-title">BDO Performance — Month to Date <span class="mgr-card-link">Full report →</span></div>
+        <table class="bdo-tbl">
+          <thead><tr><th>BDO</th><th>Leads</th><th>Contacted</th><th>Conv. Rate</th><th>Avg Contact Time</th><th>Est. Revenue</th><th>Status</th></tr></thead>
+          <tbody id="mgr-bdo-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MARKETING VIEW ═══════════ -->
+<div class="view" id="v-marketing">
+  <div class="mgr-shell" id="mkt-shell">
+    <!-- Top: Campaign KPIs -->
+    <div class="mgr-stats" style="grid-template-columns:repeat(6,1fr)">
+      <div class="mgr-stat"><div class="mgr-stat-num">4</div><div class="mgr-stat-lbl">Active campaigns</div><div class="mgr-stat-delta d-up">All on track</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num" style="color:var(--teal)">2,847</div><div class="mgr-stat-lbl">Leads generated today</div><div class="mgr-stat-delta d-up">↑ +12% vs last week</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num">1,204</div><div class="mgr-stat-lbl">BDO channel</div><div class="mgr-stat-delta">42% of leads</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num">986</div><div class="mgr-stat-lbl">Email channel</div><div class="mgr-stat-delta">35% of leads</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num">657</div><div class="mgr-stat-lbl">Digital / branch</div><div class="mgr-stat-delta">23% of leads</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-num" style="color:var(--green)">$1.2M</div><div class="mgr-stat-lbl">Est. annual revenue MTD</div><div class="mgr-stat-delta d-up">↑ 108% to target</div></div>
+    </div>
+
+    <!-- Campaign Cards -->
+    <div class="mgr-grid">
+      <div class="mgr-card" style="grid-column:1/-1">
+        <div class="mgr-card-title">Active Campaigns <span class="mgr-card-link" onclick="showToast('Opening campaign builder...')">+ New Campaign →</span></div>
+        <table class="bdo-tbl">
+          <thead><tr><th>Campaign</th><th>Product</th><th>Status</th><th>Channel Mix</th><th>Leads</th><th>Contacted</th><th>Converted</th><th>Conv. Rate</th><th>Est. Revenue</th></tr></thead>
+          <tbody id="mkt-campaigns"></tbody>
+        </table>
+      </div>
+
+      <!-- Channel Orchestration -->
+      <div class="mgr-card">
+        <div class="mgr-card-title">Channel Allocation Rules <span class="mgr-card-link" onclick="showToast('Opening channel rules editor...')">Edit rules →</span></div>
+        <div style="margin-bottom:12px;padding:8px 12px;background:var(--red-bg);border:1px solid rgba(192,57,43,0.15);border-radius:6px;font-size:11px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="font-size:14px">📵</span> <strong style="color:var(--red)">DNC filter active:</strong>&nbsp;342 leads suppressed from phone channels today · 1,847 rerouted to email/digital · <span style="color:var(--teal);cursor:pointer;font-weight:500" onclick="showToast('Switching to Admin → DNC & Suppression...')">Manage DNC rules →</span></div>
+        <div id="mkt-channel-rules"></div>
+      </div>
+
+      <!-- Attribution -->
+      <div class="mgr-card">
+        <div class="mgr-card-title">Attribution — MTD Conversions <span class="mgr-card-link">Full report →</span></div>
+        <div id="mkt-attribution"></div>
+      </div>
+
+      <!-- Contact Frequency -->
+      <div class="mgr-card">
+        <div class="mgr-card-title">Contact Frequency Controls <span class="mgr-card-link" onclick="showToast('Saving frequency rules...')">Save changes →</span></div>
+        <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Max touches per customer / month</div><div class="slider-desc">Across ALL channels (BDO + email + branch + digital)</div></div><input type="range" min="1" max="12" value="4" oninput="sv(this,'sv-mkt-freq',v=>v+' touches')"><div class="slider-val" id="sv-mkt-freq">4 touches</div></div>
+        <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">BDO call cooldown</div><div class="slider-desc">Days between BDO calls to same customer</div></div><input type="range" min="1" max="30" value="7" oninput="sv(this,'sv-mkt-bdo-cool',v=>v+'d')"><div class="slider-val" id="sv-mkt-bdo-cool">7d</div></div>
+        <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Email cooldown</div><div class="slider-desc">Days between marketing emails to same customer</div></div><input type="range" min="1" max="14" value="3" oninput="sv(this,'sv-mkt-email-cool',v=>v+'d')"><div class="slider-val" id="sv-mkt-email-cool">3d</div></div>
+        <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Post-decline suppression</div><div class="slider-desc">Days before re-offering same product after decline</div></div><input type="range" min="30" max="365" value="90" oninput="sv(this,'sv-mkt-decline',v=>v+'d')"><div class="slider-val" id="sv-mkt-decline">90d</div></div>
+      </div>
+
+      <!-- Product Priority -->
+      <div class="mgr-card">
+        <div class="mgr-card-title">Product Priority — Q1 2026 <span class="mgr-card-link" onclick="showToast('Opening priority editor...')">Edit priorities →</span></div>
+        <div id="mkt-product-priority"></div>
+      </div>
+
+      <!-- A/B Tests -->
+      <div class="mgr-card" style="grid-column:1/-1">
+        <div class="mgr-card-title">Active A/B Tests <span class="mgr-card-link" onclick="showToast('Opening test builder...')">+ New Test →</span></div>
+        <table class="bdo-tbl">
+          <thead><tr><th>Test Name</th><th>Product</th><th>Variable</th><th>Control</th><th>Variant</th><th>Sample Size</th><th>Lift</th><th>Confidence</th><th>Status</th></tr></thead>
+          <tbody id="mkt-abtests"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ADMIN VIEW ═══════════ -->
+<div class="view" id="v-admin">
+  <div class="admin-shell">
+    <nav class="admin-nav">
+      <div class="admin-nav-group">Scoring Tiers</div>
+      <div class="admin-nav-item active" onclick="showAdminPanel('adjacency',this)">Adjacency Matrix</div>
+      <div class="admin-nav-item" onclick="showAdminPanel('propensity',this)">Propensity Models</div>
+      <div class="admin-nav-item" onclick="showAdminPanel('events',this)">Event Catalog</div>
+      <div class="admin-nav-item" onclick="showAdminPanel('competitive',this)">Competitive Rules</div>
+      <div class="admin-nav-group">System</div>
+      <div class="admin-nav-item" onclick="showAdminPanel('thresholds',this)">Score Thresholds</div>
+      <div class="admin-nav-item" onclick="showAdminPanel('products',this)">Product Controls</div>
+      <div class="admin-nav-item" onclick="showAdminPanel('routing',this)">Lead Routing</div>
+      <div class="admin-nav-item" onclick="showAdminPanel('suppression',this)">DNC & Suppression</div>
+      <div class="admin-nav-group">Monitoring</div>
+      <div class="admin-nav-item" onclick="showAdminPanel('pipeline',this)">Pipeline Health</div>
+      <div class="admin-nav-item" onclick="showAdminPanel('models',this)">Model Performance</div>
+    </nav>
+    <div class="admin-content" id="admin-content"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════ DATA ═══════════════════════════════
+
+const BDO_LEADS = [
+  { id:0, rank:1, urgency:'urgent', score:847, prob:'82%', name:'Jennifer M. Castellano', product:'HELOC — $80K equity available', tagClass:'ltag-event', tag:'Home Purchase', since:'2019', location:'Gibsonia, PA', preferred:'Mornings', lastContact:'Nov 2024', holdings:['Checking','Savings','Mortgage \'24'], missing:['No HELOC','No Credit Card'],
+    why:'Jennifer purchased a home in <strong>October 2024</strong> and has been spending on home improvements. She has ~<strong>$80,000 in available equity</strong> and no HELOC with us.',
+    evidence:[['🏠','Title co. payment','$1,240'],['📦','Moving co.','$3,800'],['🔨','Lowe\'s / HD','$8,400'],['🛡','Home insurance','Nov \'24']],
+    tiers:[{v:'75',l:'Adjacency',c:'var(--navy)'},{v:'82%',l:'Propensity',c:'var(--teal)'},{v:'7×',l:'Event Boost',c:'var(--red)'},{v:'1×',l:'Competitive',c:'var(--t3)'}],
+    script:[{n:'1',t:'Opening',s:'"Hi, may I speak with <strong>Jennifer</strong>? This is [your name] from First National Bank. I noticed some activity on your account worth a quick conversation — do you have two minutes?"'},
+            {n:'2',t:'Context',s:'"Congratulations on the new home! It looks like you\'ve been settling in and doing some improvements — I wanted to make sure you know about something that could really help."'},
+            {n:'3',t:'The Pitch',s:'"Based on your mortgage, you have approximately <em>$80,000 in available home equity</em>. A HELOC gives you flexible access at <em>7.25% APR</em> — significantly lower than a personal loan or credit card, and potentially tax-deductible for home improvements."'},
+            {n:'4',t:'Call to Action',s:'"I can connect you with our home lending specialist today — they typically have a line set up within <em>two weeks</em>. Would that be helpful?"'}],
+    objections:[{q:'"Not interested right now."',a:'Totally understand — can I check back in 3-6 months?'},{q:'"I need to think about it."',a:'Of course. What would help you decide? I can send over a one-pager.'},{q:'"I already have a HELOC elsewhere."',a:'Are you happy with your current rate? We\'re at 7.25% — I can check if we can beat it.'},{q:'"I don\'t want more debt."',a:'Makes sense — this is about having the option available, not necessarily using it. It\'s a line, not a loan.'}]},
+  { id:1, rank:2, urgency:'urgent', score:782, prob:'74%', name:'Tyler J. Brooks', product:'Wealth Management', tagClass:'ltag-event', tag:'Windfall $85K', since:'2020', location:'Pittsburgh, PA', preferred:'Afternoons', lastContact:'Sep 2024', holdings:['Checking','Savings'], missing:['No Investment Account','No CD'],
+    why:'Tyler received a <strong>$85,000 deposit</strong> last week — likely an inheritance or asset sale. No investment product with us. Unmanaged windfalls leave the bank within 30 days.',
+    evidence:[['💰','Large deposit','$85,000'],['📅','Deposit date','Feb 21'],['🏦','Investment acct','None'],['⏱','Urgency window','30 days']],
+    tiers:[{v:'60',l:'Adjacency',c:'var(--navy)'},{v:'74%',l:'Propensity',c:'var(--teal)'},{v:'10×',l:'Event Boost',c:'var(--red)'},{v:'1×',l:'Competitive',c:'var(--t3)'}],
+    script:[{n:'1',t:'Opening',s:'"Hi <strong>Tyler</strong>, this is [your name] from First National Bank. I noticed a significant deposit came in and wanted to reach out personally — do you have a couple of minutes?"'},
+            {n:'2',t:'Context',s:'"We take it seriously when a customer receives a meaningful sum. I want to make sure those funds are working for you, not just sitting in checking."'},
+            {n:'3',t:'The Pitch',s:'"We have a few options depending on your timeline — a <em>high-yield savings at 4.8% APY</em>, a <em>CD ladder</em> if you don\'t need the funds soon, or a wealth advisor conversation about longer-term growth."'},
+            {n:'4',t:'Call to Action',s:'"Can I set up a 20-minute call with our wealth team this week? No obligation — just options on the table before you decide."'}],
+    objections:[{q:'"I\'m not sure what I want to do."',a:'That\'s exactly why a conversation helps — no commitment, just knowing your options.'},{q:'"I have an advisor already."',a:'Understood — we\'d just make sure anything held here is earning appropriately in the meantime.'},{q:'"I\'m going to use it soon."',a:'Even short-term, a high-yield savings earns you a few hundred while you decide.'},{q:'"I don\'t need financial advice."',a:'Fair — I can set up a high-yield account right now if that\'s easier.'}]},
+  { id:2, rank:3, urgency:'high', score:612, prob:'68%', name:'Robert T. Nguyen', product:'Auto Loan Refi — save $67/mo', tagClass:'ltag-comp', tag:'Competitive', since:'2021', location:'Pittsburgh, PA', preferred:'Evenings', lastContact:'Jan 2025', holdings:['Checking','Savings'], missing:['No Auto Loan with us'],
+    why:'Robert makes <strong>monthly payments to Chase Auto Finance</strong> of ~$425. Estimated rate: <strong>8.1%</strong>. We can offer <strong>5.9%</strong> — saving ~$67/month or $2,412 total.',
+    evidence:[['🚗','Payments to','Chase Auto'],['💸','Est. current rate','8.1%'],['📉','Our offer','5.9%'],['💰','Monthly savings','$67/mo']],
+    tiers:[{v:'55',l:'Adjacency',c:'var(--navy)'},{v:'68%',l:'Propensity',c:'var(--teal)'},{v:'1×',l:'Event Boost',c:'var(--t3)'},{v:'8×',l:'Competitive',c:'var(--orange)'}],
+    script:[{n:'1',t:'Opening',s:'"Hi <strong>Robert</strong>, this is [your name] from First National Bank. I\'m calling because I think we can save you real money on your car loan — do you have 90 seconds?"'},
+            {n:'2',t:'Lead with the Number',s:'"Your current rate looks to be around <em>8.1%</em>. We can offer <em>5.9%</em> today — that\'s about <em>$67 a month back in your pocket</em>, or ~$2,400 over the life of your loan. We handle all the paperwork with Chase."'},
+            {n:'3',t:'Call to Action',s:'"I can start the application right now — 5 minutes, and you\'d see savings starting next month. Want to go ahead?"'},
+            {n:'4',t:'Close',s:'"Great — let me pull up your account. I just need to confirm a few details and we\'ll get this submitted today."'}],
+    objections:[{q:'"What\'s the catch?"',a:'No catch — you\'re a valued customer and we want your auto loan too. Better rate, you save money, done.'},{q:'"How do you know my rate?"',a:'Estimated from your payment patterns — we\'ll confirm in the application.'},{q:'"I just refinanced recently."',a:'Rates have moved — still worth checking. Happy to run the numbers.'},{q:'"I\'ll think about it."',a:'Of course — I can send you our rate in writing so you have it. 30 seconds.'}]},
+  { id:3, rank:4, urgency:'high', score:588, prob:'61%', name:'Amelia K. Ross', product:'Business Banking Package', tagClass:'ltag-event', tag:'Biz Formation', since:'2018', location:'Cranberry Twp, PA', preferred:'Mornings', lastContact:'Aug 2024', holdings:['Personal Checking','Personal Savings'], missing:['No Business Account','No Business Card'],
+    why:'Amelia paid <strong>LLC registration fees</strong> in January and has payments to QuickBooks, Canva, and a domain registrar. She just started a business — ideal moment to introduce business banking.',
+    evidence:[['💼','LLC filing','Jan 2025'],['💻','QuickBooks','Monthly'],['🌐','Domain registrar','Feb 2025'],['🧾','Biz supply spend','$2,100']],
+    tiers:[{v:'70',l:'Adjacency',c:'var(--navy)'},{v:'61%',l:'Propensity',c:'var(--teal)'},{v:'9×',l:'Event Boost',c:'var(--red)'},{v:'1×',l:'Competitive',c:'var(--t3)'}],
+    script:[{n:'1',t:'Opening',s:'"Hi <strong>Amelia</strong>, this is [your name] from First National Bank. Congratulations — it looks like you recently started a business! I wanted to reach out because we have a package that could be a great fit."'},
+            {n:'2',t:'The Pitch',s:'"We can open a <em>business checking account</em> with no monthly fee for the first year, a <em>business credit card</em> with 2% back on all purchases, and access to a <em>business line of credit</em> when you need it."'},
+            {n:'3',t:'Call to Action',s:'"I can get the business checking set up today — about 10 minutes over the phone, and we\'ll waive the opening fee since you\'re already a customer. Sound good?"'},
+            {n:'4',t:'Follow-up Hook',s:'"Once you\'re set up, I\'d love to introduce you to our small business advisor — they help new businesses with cash flow planning at no charge."'}],
+    objections:[{q:'"I haven\'t decided on a bank."',a:'That\'s exactly why I\'m calling — no obligation, and we waive fees for the first year.'},{q:'"I\'m using a business-only bank."',a:'Keeping everything together makes tax time a lot easier. Worth a 10-minute conversation.'},{q:'"It\'s too early."',a:'Actually the earlier the better — clean separation of business and personal from day one.'},{q:'"I\'m just a freelancer."',a:'Perfect — even freelancers benefit from a dedicated account. Simpler taxes, looks more professional.'}]},
+  { id:4, rank:5, urgency:'medium', score:421, prob:'52%', name:'Sandra P. Flores', product:'529 Plan + Life Insurance', tagClass:'ltag-event', tag:'New Baby', since:'2017', location:'Robinson Twp, PA', preferred:'Evenings', lastContact:'Oct 2024', holdings:['Joint Checking','Joint Savings','Mortgage'], missing:['No 529 Plan','No Life Insurance'],
+    why:'Sandra and partner are buying <strong>baby-related items</strong> — infant furniture, baby subscriptions, pediatric clinic visits. Pattern confidence: 78%. A timely 529 and life insurance conversation.',
+    evidence:[['👶','Baby furniture','$1,800'],['🍼','Baby subscriptions','Monthly'],['🏥','Pediatric clinic','Feb 2025'],['📦','Baby supplies','$640']],
+    tiers:[{v:'65',l:'Adjacency',c:'var(--navy)'},{v:'52%',l:'Propensity',c:'var(--teal)'},{v:'8×',l:'Event Boost',c:'var(--red)'},{v:'1×',l:'Competitive',c:'var(--t3)'}],
+    script:[{n:'1',t:'Opening',s:'"Hi <strong>Sandra</strong>, this is [your name] from First National Bank. Congratulations — it looks like there\'s a new addition to the family! I wanted to reach out about a couple of things worth thinking about early."'},
+            {n:'2',t:'529 Plan',s:'"The first is a <em>529 college savings plan</em>. Starting now, even with small contributions, makes a huge difference over 18 years. Contributions are tax-deductible up to $17,000/year in Pennsylvania."'},
+            {n:'3',t:'Life Insurance',s:'"The second is <em>life insurance</em>. Rates are lowest when you\'re young and healthy — locking in a term policy now is significantly cheaper than waiting a few years."'},
+            {n:'4',t:'Call to Action',s:'"Can I set up a call with our family planning specialist this week? 20 minutes, no obligation — just to make sure you have all the information."'}],
+    objections:[{q:'"College feels so far away."',a:'That\'s the point — starting now means you contribute less per month to hit the same goal.'},{q:'"We already have life insurance."',a:'When did you last review the coverage amount? Needs change with a new dependent.'},{q:'"We\'re still figuring things out."',a:'Totally understandable. I can send over info so you have it when you\'re ready.'},{q:'"We can\'t afford more right now."',a:'Even $25/month into a 529 adds up. Some life insurance starts under $20/month.'}]},
+  { id:5, rank:6, urgency:'medium', score:389, prob:'45%', name:'Carlos D. Whitmore', product:'Rewards Credit Card', tagClass:'ltag-prop', tag:'78% propensity', since:'2022', location:'Bethel Park, PA', preferred:'Anytime', lastContact:'Dec 2024', holdings:['Checking','Savings'], missing:['No Credit Card'],
+    why:'Carlos has <strong>28 debit transactions/month</strong> and stable $4,200 direct deposit. Spending patterns suggest he\'d actively use a rewards card. No external credit card payments detected.',
+    evidence:[['💳','Debit transactions','28/mo'],['💵','Direct deposit','$4,200/mo'],['📊','Balance stability','High'],['🔍','External card pmts','None']],
+    tiers:[{v:'85',l:'Adjacency',c:'var(--navy)'},{v:'78%',l:'Propensity',c:'var(--teal)'},{v:'1×',l:'Event Boost',c:'var(--t3)'},{v:'1×',l:'Competitive',c:'var(--t3)'}],
+    script:[{n:'1',t:'Opening',s:'"Hi <strong>Carlos</strong>, this is [your name] from First National Bank. You\'ve been a great customer and I wanted to let you know you\'re pre-approved for our rewards credit card."'},
+            {n:'2',t:'The Pitch',s:'"It\'s <em>2% cash back on all purchases</em> — no categories to track, no annual fee. Since you\'re already banking with us it links directly to your checking for auto-pay."'},
+            {n:'3',t:'Sweetener',s:'"There\'s also a <em>$200 bonus</em> after spending $1,000 in the first 90 days. Based on your spending, you\'d hit that in about three months naturally."'},
+            {n:'4',t:'Call to Action',s:'"I can get you approved right now — takes 2 minutes. Want to go ahead?"'}],
+    objections:[{q:'"I don\'t like credit cards."',a:'Fair enough — I\'ll note that and check back another time.'},{q:'"I already have a card."',a:'Are you earning 2% on everything? No annual fee? Might be worth comparing.'},{q:'"What\'s the interest rate?"',a:'17.99% APR — but with autopay from your checking it\'s easy to pay in full each month.'},{q:'"I need to think about it."',a:'Of course — I\'ll note you\'re pre-approved so the offer is ready whenever you decide.'}]},
+  { id:6, rank:7, urgency:'normal', score:218, prob:'28%', name:'Lisa A. Thompson', product:'Savings Account', tagClass:'ltag-adj', tag:'Adjacency', since:'2023', location:'Mt. Lebanon, PA', preferred:'Anytime', lastContact:'Never', holdings:['Checking only'], missing:['No Savings','No Credit Card'],
+    why:'Lisa has been a <strong>checking-only customer for 14 months</strong> with an average balance of $3,200. Adding savings strengthens the relationship and reduces attrition risk.',
+    evidence:[['🏦','Checking avg balance','$3,200'],['📅','Tenure','14 months'],['🔒','Products','1 of 1'],['📉','Attrition risk','Medium']],
+    tiers:[{v:'90',l:'Adjacency',c:'var(--navy)'},{v:'28%',l:'Propensity',c:'var(--teal)'},{v:'1×',l:'Event Boost',c:'var(--t3)'},{v:'1×',l:'Competitive',c:'var(--t3)'}],
+    script:[{n:'1',t:'Opening',s:'"Hi <strong>Lisa</strong>, this is [your name] from First National Bank. You\'ve been with us for about a year and I had a quick thought — do you have a minute?"'},
+            {n:'2',t:'The Pitch',s:'"You\'re doing great with your checking account. I noticed you don\'t have a savings account with us yet — our high-yield savings is currently at <em>4.5% APY</em>, significantly better than letting money sit in checking."'},
+            {n:'3',t:'Call to Action',s:'"I can open it right now in 2 minutes — no minimum balance, no fees. Want me to set it up?"'}],
+    objections:[{q:'"I have savings elsewhere."',a:'What rate are you getting? If it\'s less than 4.5%, it\'s worth consolidating here.'},{q:'"I don\'t have much to save."',a:'No minimum — even $100 starts the habit.'},{q:'"I\'m fine as is."',a:'No problem — just wanted to make sure you knew the option was there.'}]},
+  { id:7, rank:8, urgency:'normal', score:201, prob:'25%', name:'Marcus W. Elliott', product:'Auto Loan Pre-Approval', tagClass:'ltag-prop', tag:'65% propensity', since:'2021', location:'Squirrel Hill, PA', preferred:'Afternoons', lastContact:'Mar 2024', holdings:['Checking','Savings'], missing:['No Auto Loan','No Credit Card'],
+    why:'Marcus has been paying <strong>increasing auto maintenance bills</strong> and recently used a dealer-affiliated service. Model gives 65% likelihood of auto purchase in next 90 days.',
+    evidence:[['🔧','Mechanic spend','↑ $900/60d'],['🚗','Dealer service','Feb 2025'],['💵','Est. income','$5,800/mo'],['📊','Credit signal','Strong']],
+    tiers:[{v:'70',l:'Adjacency',c:'var(--navy)'},{v:'65%',l:'Propensity',c:'var(--teal)'},{v:'1×',l:'Event Boost',c:'var(--t3)'},{v:'1×',l:'Competitive',c:'var(--t3)'}],
+    script:[{n:'1',t:'Opening',s:'"Hi <strong>Marcus</strong>, this is [your name] from First National Bank. I\'m calling because it looks like you might be thinking about a vehicle purchase — I wanted to make sure you have our rates before you head to a dealership."'},
+            {n:'2',t:'The Pitch',s:'"Dealership financing is usually 1-3 points higher than your bank. We\'re at <em>5.9% APR</em> for qualified buyers. Getting pre-approved means you walk in knowing your budget and your rate — it also gives you negotiating leverage on the car price."'},
+            {n:'3',t:'Call to Action',s:'"A pre-approval takes 5 minutes and doesn\'t affect your credit score. Want me to run it now so you\'re ready?"'}],
+    objections:[{q:'"I\'m not sure I\'m buying yet."',a:'That\'s fine — a pre-approval is just knowing your options. It\'s good for 60 days.'},{q:'"The dealer will give me 0%."',a:'0% promos are usually on specific models at MSRP — often the math favors a lower rate with negotiated price.'},{q:'"I already have financing lined up."',a:'No problem — just wanted to make sure you had us as an option. We\'re typically 1-2 points lower.'}]}
+];
+
+const SPEC_DATA = {
+  auto: {
+    label:'🚗 Auto Loan Refi', count:24,
+    leads:[
+      {name:'Robert T. Nguyen', detail:'Chase 8.1% → 5.9% · save $67/mo', compFrom:'Chase Auto Finance', compRate:'8.1%', ourRate:'5.9%', saveMo:'$67/mo', saveTotal:'$2,412 over term', estPmt:'$425/mo · 36mo remaining', tenure:'3yr', products:'Checking + Savings', location:'Pittsburgh, PA'},
+      {name:'Dana C. Morales', detail:'Wells Fargo 9.4% → 5.9% · save $92/mo', compFrom:'Wells Fargo Auto', compRate:'9.4%', ourRate:'5.9%', saveMo:'$92/mo', saveTotal:'$3,312 over term', estPmt:'$510/mo · 36mo remaining', tenure:'2yr', products:'Checking', location:'Pittsburgh, PA'},
+      {name:'Kevin J. Park', detail:'Capital One 7.8% → 5.9% · save $44/mo', compFrom:'Capital One Auto', compRate:'7.8%', ourRate:'5.9%', saveMo:'$44/mo', saveTotal:'$1,584 over term', estPmt:'$388/mo · 36mo remaining', tenure:'4yr', products:'Checking + Savings + Mortgage', location:'Wexford, PA'},
+      {name:'Theresa M. Walsh', detail:'Carmax 11.2% → 5.9% · save $148/mo', compFrom:'CarMax Auto Finance', compRate:'11.2%', ourRate:'5.9%', saveMo:'$148/mo', saveTotal:'$5,328 over term', estPmt:'$612/mo · 36mo remaining', tenure:'1yr', products:'Checking', location:'Bethel Park, PA'},
+      {name:'James R. Osei', detail:'Referred by RM · D. Kim note', compFrom:'Unknown lender', compRate:'~8.5%', ourRate:'5.9%', saveMo:'~$80/mo', saveTotal:'~$2,880 over term', estPmt:'Unknown · Referred', tenure:'5yr', products:'Checking + Savings', location:'Squirrel Hill, PA'}
+    ]
+  },
+  heloc: {
+    label:'🏠 HELOC', count:18,
+    leads:[
+      {name:'Marcus & Linda Webb', detail:'$76K equity · renovation in progress', compFrom:'—', compRate:'N/A', ourRate:'7.25%', saveMo:'vs 9.5% personal loan', saveTotal:'$4,800/yr at $60K avg balance', estPmt:'Interest-only draw period', tenure:'7yr', products:'Checking + Savings + Mortgage', location:'Gibsonia, PA'},
+      {name:'Christine M. Okafor', detail:'$120K equity · payoff other debt', compFrom:'—', compRate:'N/A', ourRate:'7.25%', saveMo:'vs 18% credit card', saveTotal:'$6,400/yr if replacing CC debt', estPmt:'Interest-only draw period', tenure:'5yr', products:'Checking + Mortgage + HELOC (other bank)', location:'Cranberry Twp, PA'}
+    ]
+  },
+  credit: {
+    label:'💳 Credit Card', count:31,
+    leads:[
+      {name:'Carlos D. Whitmore', detail:'78% propensity · high debit usage', compFrom:'—', compRate:'N/A', ourRate:'17.99% APR / 2% CB', saveMo:'$200 signup bonus', saveTotal:'~$400-600/yr in rewards', estPmt:'Pay in full · no fee', tenure:'2yr', products:'Checking + Savings', location:'Bethel Park, PA'},
+      {name:'Lisa A. Thompson', detail:'Checking only · adjacency lead', compFrom:'—', compRate:'N/A', ourRate:'17.99% APR / 2% CB', saveMo:'$200 signup bonus', saveTotal:'~$300/yr in rewards', estPmt:'Pay in full · no fee', tenure:'14mo', products:'Checking', location:'Mt. Lebanon, PA'}
+    ]
+  },
+  biz: {
+    label:'💼 Business', count:9,
+    leads:[
+      {name:'Amelia K. Ross', detail:'LLC formation Jan 2025 · no biz acct', compFrom:'—', compRate:'N/A', ourRate:'No fee yr 1', saveMo:'+ 2% biz card rewards', saveTotal:'Est. $1,200/yr value', estPmt:'No minimum balance', tenure:'6yr personal', products:'Personal Checking + Savings', location:'Cranberry Twp, PA'}
+    ]
+  }
+};
+
+const RM_CUSTOMERS = [
+  { name:'Marcus & Linda Webb', products:'Checking · Savings · Mortgage', sigColor:'var(--red)', sigCount:'2 signals',
+    since:'2017', tenure:'7-year', location:'Gibsonia, PA',
+    bio:'Marcus is a construction supervisor; Linda works in healthcare. Average checking balance <strong>$8,400</strong>, savings <strong>$22,000</strong>. Mortgage current, no late payments. Renovation spend suggests a project underway. Best time: evenings after 6pm.',
+    opps:[
+      {icon:'🔨',bg:'var(--red-bg)',cls:'primary',prod:'HELOC — Home Renovation in Progress',why:'$12,400 in Home Depot/Lowe\'s spend last 90 days · $76K equity available',score:'712',scoreColor:'var(--red)',act:'Open script ↗'},
+      {icon:'💳',bg:'var(--orange-bg)',cls:'secondary',prod:'Credit Card — External Relationship Detected',why:'Monthly payments to Chase card detected · balance transfer + 2% rewards',score:'521',scoreColor:'var(--orange)',act:'Refer to specialist ↗'},
+      {icon:'🛡',bg:'var(--gold-bg)',cls:'',prod:'Home Insurance — Bundling Opportunity',why:'No insurance with us · Mortgage customer = natural bundle',score:'340',scoreColor:'var(--gold)',act:'Open script ↗'}
+    ]},
+  { name:'Priya & Raj Patel', products:'Checking · Auto Loan', sigColor:'var(--orange)', sigCount:'1 signal',
+    since:'2020', tenure:'4-year', location:'Wexford, PA',
+    bio:'Priya works in tech; Raj in finance. Joint checking with regular bi-weekly deposits. Auto loan with us (2023). Recent travel purchases suggest dual income stability. Savings account gap is the priority.',
+    opps:[
+      {icon:'💰',bg:'var(--teal-bg)',cls:'',prod:'Savings Account — High Income, No Savings',why:'Average checking balance $12,800 · no savings account · leaving money on the table',score:'580',scoreColor:'var(--teal)',act:'Open script ↗'},
+      {icon:'🏠',bg:'var(--gold-bg)',cls:'',prod:'Mortgage Pre-Qualification — Rental Payment Detected',why:'Monthly rent payment $2,100 detected · homebuying readiness signals',score:'390',scoreColor:'var(--gold)',act:'Open script ↗'}
+    ]},
+  { name:'George T. Washington', products:'Business Checking · Savings', sigColor:'var(--orange)', sigCount:'1 signal',
+    since:'2019', tenure:'5-year', location:'Downtown Pittsburgh, PA',
+    bio:'George runs a small landscaping company. Business checking and personal savings both with us. Cash flow fluctuates seasonally (Mar-Oct high, Nov-Feb low). High loyalty, low product depth.',
+    opps:[
+      {icon:'💳',bg:'var(--orange-bg)',cls:'primary',prod:'Business Credit Card — Operating Expenses',why:'Heavy debit card use for business purchases · no business credit card · missing 2% rewards',score:'622',scoreColor:'var(--orange)',act:'Open script ↗'},
+      {icon:'📈',bg:'var(--teal-bg)',cls:'',prod:'Business Line of Credit — Seasonal Cash Flow',why:'Seasonal income pattern detected · LOC would bridge Nov-Feb gap',score:'410',scoreColor:'var(--teal)',act:'Open script ↗'}
+    ]},
+  { name:'Christine M. Okafor', products:'Checking · Mortgage · HELOC (other bank)', sigColor:'var(--gold)', sigCount:'1 signal',
+    since:'2018', tenure:'6-year', location:'Cranberry Twp, PA',
+    bio:'Christine is a nurse practitioner. Strong credit profile, mortgage and HELOC but HELOC is with PNC. She\'s a highly loyal customer. Goal: consolidate HELOC relationship here with better rate.',
+    opps:[
+      {icon:'🏠',bg:'var(--red-bg)',cls:'primary',prod:'HELOC Refinance — External HELOC Detected',why:'PNC HELOC payments $380/mo detected · est. 8.5% → our 7.25% · save $55/mo',score:'698',scoreColor:'var(--red)',act:'Open script ↗'}
+    ]},
+  { name:'Brian K. Sullivan', products:'Checking only', sigColor:'var(--border2)', sigCount:'—',
+    since:'2023', tenure:'1-year', location:'Shadyside, PA',
+    bio:'Brian recently relocated to Pittsburgh. Checking-only, 14-month relationship. Stable income deposits of $6,200/month. No other products. High-income single-product customer is a priority to deepen.',
+    opps:[
+      {icon:'💰',bg:'var(--teal-bg)',cls:'',prod:'Savings Account — High Income, No Savings',why:'$6,200/mo direct deposit · no savings · missing 4.5% APY on idle cash',score:'420',scoreColor:'var(--teal)',act:'Open script ↗'},
+      {icon:'💳',bg:'var(--gold-bg)',cls:'',prod:'Rewards Credit Card — Pre-Approved',why:'High income, clean payment history · 2% cash back on everything',score:'310',scoreColor:'var(--gold)',act:'Open script ↗'}
+    ]}
+];
+
+const ADMIN_PANELS = {
+  adjacency: {
+    title:'Adjacency Matrix',
+    desc:'Cross-sell base scores (0–100) for every product pair. Changes apply on next nightly batch run. Click any cell to edit.',
+    render: () => `
+      <div class="acard"><div class="acard-title">Product Pair Scores</div>
+      <div class="matrix">
+        <div class="mh"></div><div class="mh">Checking</div><div class="mh">Savings</div><div class="mh">Credit Card</div><div class="mh">Auto Loan</div><div class="mh">HELOC</div>
+        <div class="ml">Mortgage only</div><div class="mc mc90" onclick="editMC(this)">95</div><div class="mc mc70" onclick="editMC(this)">80</div><div class="mc mc70" onclick="editMC(this)">75</div><div class="mc mc50" onclick="editMC(this)">50</div><div class="mc mc70" onclick="editMC(this)">60</div>
+        <div class="ml">Checking only</div><div class="mc mc0">—</div><div class="mc mc90" onclick="editMC(this)">90</div><div class="mc mc90" onclick="editMC(this)">85</div><div class="mc mc70" onclick="editMC(this)">70</div><div class="mc mc50" onclick="editMC(this)">40</div>
+        <div class="ml">Checking + Savings</div><div class="mc mc0">—</div><div class="mc mc0">—</div><div class="mc mc90" onclick="editMC(this)">95</div><div class="mc mc70" onclick="editMC(this)">80</div><div class="mc mc50" onclick="editMC(this)">50</div>
+        <div class="ml">Auto Loan only</div><div class="mc mc90" onclick="editMC(this)">85</div><div class="mc mc70" onclick="editMC(this)">70</div><div class="mc mc70" onclick="editMC(this)">75</div><div class="mc mc0">—</div><div class="mc mc50" onclick="editMC(this)">30</div>
+        <div class="ml">Biz Checking</div><div class="mc mc0">—</div><div class="mc mc50" onclick="editMC(this)">60</div><div class="mc mc90" onclick="editMC(this)">95</div><div class="mc mc50" onclick="editMC(this)">55</div><div class="mc mc50" onclick="editMC(this)">40</div>
+      </div></div>`
+  },
+  propensity: {
+    title:'Propensity Models',
+    desc:'Machine learning models predict acceptance likelihood (0–100%) per product. Models retrain quarterly on new conversion data.',
+    render: () => `
+      <div class="acard"><div class="acard-title">Model Performance — Current</div>
+      <div class="model-grid">
+        ${[['Credit Card','0.81','Top decile lift 3.8×','Last trained: Jan 15'],['Auto Loan','0.76','Top decile lift 3.2×','Last trained: Jan 15'],['HELOC','0.74','Top decile lift 2.9×','Last trained: Dec 12'],['Personal Loan','0.72','Top decile lift 2.7×','Last trained: Dec 12'],['Business Banking','0.78','Top decile lift 3.5×','Last trained: Jan 15'],['Wealth Mgmt','0.69','Top decile lift 2.4×','Last trained: Nov 20']].map(([nm,auc,lift,trained])=>`
+          <div class="model-card">
+            <div class="model-name">${nm}</div>
+            <div class="model-auc">
+              <div class="auc-bar"><div class="auc-fill" style="width:${parseFloat(auc)*100}%"></div></div>
+              <div class="auc-val">AUC ${auc}</div>
+            </div>
+            <div class="model-meta">${lift}<br>${trained}</div>
+          </div>`).join('')}
+      </div></div>
+      <div class="acard"><div class="acard-title">Retraining Schedule</div>
+      <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Retraining Frequency</div><div class="slider-desc">Days between model updates</div></div><input type="range" min="7" max="90" value="90" oninput="sv(this,'sv-retrain',v=>v+'d')"><div class="slider-val" id="sv-retrain">90d</div></div>
+      <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Min Training Samples</div><div class="slider-desc">Records needed before retrain</div></div><input type="range" min="100" max="5000" value="1000" oninput="sv(this,'sv-samples',v=>v)"><div class="slider-val" id="sv-samples">1000</div></div>
+      </div>`
+  },
+  events: {
+    title:'Event Catalog',
+    desc:'Life events detected from transaction patterns. Active events fire alerts when confidence threshold is met. Click to toggle on/off.',
+    render: () => `
+      <div class="acard"><div class="acard-title">Active Event Detectors</div>
+      <div class="event-grid">
+        ${[['🏠','Home Purchase','Conf ≥75% · 24h alert','7×',true],['🚗','Auto Purchase','Conf ≥80% · batch','6×',true],['👶','New Baby','Conf ≥70% · 48h alert','8×',true],['🏗','Home Renovation','Conf ≥72% · batch','5×',true],['💼','Business Formation','Conf ≥78% · 24h alert','9×',true],['📈','Job Change','Conf ≥75% · batch','5×',true],['🎓','College Enrollment','Conf ≥70% · batch','4×',false],['🌅','Retirement','Conf ≥80% · 48h alert','7×',false],['💍','Marriage','Conf ≥70% · batch','5×',false],['💰','Windfall','Conf ≥85% · 24h alert','10×',false]].map(([icon,name,meta,mult,active])=>`
+          <div class="ev-cat-card ${active?'active':''}" onclick="this.classList.toggle('active')">
+            <div class="ev-cat-icon">${icon}</div>
+            <div><div class="ev-cat-name">${name}</div><div class="ev-cat-meta">${meta}</div></div>
+            <div class="ev-cat-mult">${mult}</div>
+          </div>`).join('')}
+      </div></div>
+      <div class="acard"><div class="acard-title">Confidence Thresholds</div>
+      <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Global Min Confidence</div><div class="slider-desc">Below this, events are suppressed</div></div><input type="range" min="50" max="100" value="70" oninput="sv(this,'sv-conf',v=>v+'%')"><div class="slider-val" id="sv-conf">70%</div></div>
+      </div>`
+  },
+  competitive: {
+    title:'Competitive Displacement Rules',
+    desc:'Configure how external relationships are detected, scored, and what minimum savings threshold triggers a lead.',
+    render: () => `
+      <div class="acard"><div class="acard-title">Detection Settings</div>
+      <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Min Monthly Savings</div><div class="slider-desc">Don't surface unless we save this much</div></div><input type="range" min="10" max="200" value="25" oninput="sv(this,'sv-minsave',v=>'$'+v+'/mo')"><div class="slider-val" id="sv-minsave">$25/mo</div></div>
+      <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Detection Confidence</div><div class="slider-desc">Min % before surfacing competitive lead</div></div><input type="range" min="50" max="100" value="75" oninput="sv(this,'sv-detconf',v=>v+'%')"><div class="slider-val" id="sv-detconf">75%</div></div>
+      <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Competitive Multiplier Cap</div><div class="slider-desc">Max boost applied to score</div></div><input type="range" min="1" max="10" value="10" oninput="sv(this,'sv-mult',v=>v+'×')"><div class="slider-val" id="sv-mult">10×</div></div>
+      </div>
+      <div class="acard"><div class="acard-title">Product Types in Scope</div>
+      ${[['External Mortgage','Detect competing home loan payments',true],['External Auto Loan','Detect competing auto loan payments',true],['External Credit Card','Detect competing card payments',true],['External Student Loan','Detect student loan servicers',true],['Rent Payments','Flag as homebuying opportunity',true],['External Personal Loan','Detect personal loan servicers',false]].map(([nm,desc,on])=>`
+        <div class="toggle-row"><div><div class="toggle-name">${nm}</div><div class="toggle-desc">${desc}</div></div><label class="tog"><input type="checkbox" ${on?'checked':''}><span class="tog-track"></span></label></div>`).join('')}
+      </div>`
+  },
+  thresholds: {
+    title:'Score Thresholds',
+    desc:'Control the quality vs. volume tradeoff. Raise the floor to give BDOs only the highest-confidence leads.',
+    render: () => `
+      <div class="a2col">
+        <div class="acard"><div class="acard-title">Lead Generation Thresholds</div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Min Lead Score</div><div class="slider-desc">Suppress leads below this</div></div><input type="range" min="0" max="1000" value="150" oninput="sv(this,'sv-minscore',v=>v)"><div class="slider-val" id="sv-minscore">150</div></div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Urgent Threshold</div><div class="slider-desc">Score to flag as urgent (red)</div></div><input type="range" min="300" max="1000" value="700" oninput="sv(this,'sv-urgent',v=>v)"><div class="slider-val" id="sv-urgent">700</div></div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">High Priority Threshold</div><div class="slider-desc">Score to flag as high (orange)</div></div><input type="range" min="200" max="700" value="500" oninput="sv(this,'sv-high',v=>v)"><div class="slider-val" id="sv-high">500</div></div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Max Leads per BDO/Day</div><div class="slider-desc">Cap to prevent overwhelm</div></div><input type="range" min="5" max="50" value="28" oninput="sv(this,'sv-maxleads',v=>v)"><div class="slider-val" id="sv-maxleads">28</div></div>
+        </div>
+        <div class="acard"><div class="acard-title">Tier Weights in Final Score</div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Adjacency Weight</div><div class="slider-desc">Baseline product-fit score</div></div><input type="range" min="0" max="100" value="25" oninput="sv(this,'sv-w1',v=>v+'%')"><div class="slider-val" id="sv-w1">25%</div></div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Propensity Weight</div><div class="slider-desc">ML acceptance probability</div></div><input type="range" min="0" max="100" value="30" oninput="sv(this,'sv-w2',v=>v+'%')"><div class="slider-val" id="sv-w2">30%</div></div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Event Multiplier Cap</div><div class="slider-desc">Max event boost allowed</div></div><input type="range" min="1" max="20" value="10" oninput="sv(this,'sv-w3',v=>v+'×')"><div class="slider-val" id="sv-w3">10×</div></div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Competitive Multiplier Cap</div><div class="slider-desc">Max competitive boost allowed</div></div><input type="range" min="1" max="20" value="10" oninput="sv(this,'sv-w4',v=>v+'×')"><div class="slider-val" id="sv-w4">10×</div></div>
+        </div>
+      </div>`
+  },
+  products: {
+    title:'Product Controls',
+    desc:'Toggle products in and out of scope globally. Changes take effect on the next batch run.',
+    render: () => `
+      <div class="a2col">
+        <div class="acard"><div class="acard-title">Lending Products</div>
+          ${[['Auto Loan Refi','Q3 Campaign active',true],['HELOC','Requires 24mo mortgage tenure',true],['Mortgage','New purchase & refi',true],['Personal Loan','Moratorium — currently off',false],['Student Loan Refi','Limited availability',false]].map(([nm,desc,on])=>`
+            <div class="toggle-row"><div><div class="toggle-name">${nm}</div><div class="toggle-desc">${desc}</div></div><label class="tog"><input type="checkbox" ${on?'checked':''}><span class="tog-track"></span></label></div>`).join('')}
+        </div>
+        <div class="acard"><div class="acard-title">Deposit & Other Products</div>
+          ${[['Checking Account','Always on — core product',true],['Savings Account','High-yield 4.5% APY',true],['CD / Term Deposits','Windfall & high balance only',true],['Business Banking','Event-triggered leads only',true],['Wealth Management','$50K+ balance customers',true],['Credit Card','Pre-approval queue active',true]].map(([nm,desc,on])=>`
+            <div class="toggle-row"><div><div class="toggle-name">${nm}</div><div class="toggle-desc">${desc}</div></div><label class="tog"><input type="checkbox" ${on?'checked':''}><span class="tog-track"></span></label></div>`).join('')}
+        </div>
+      </div>`
+  },
+  routing: {
+    title:'Lead Routing Rules',
+    desc:'Define which lead types go to which role. Changes affect the next day\'s distribution.',
+    render: () => `
+      <div class="acard"><div class="acard-title">Product → Role Assignment</div>
+      <table class="routing-tbl">
+        <thead><tr><th>Product</th><th>Lead Type</th><th>Primary Role</th><th>Escalate To</th><th>Max per Day</th></tr></thead>
+        <tbody>
+          ${[['HELOC','Event-triggered','Relationship Manager','Home Lending Specialist','5'],['HELOC','Standard','BDO','Home Lending Specialist','15'],['Auto Loan Refi','Competitive','Auto Specialist','—','20'],['Auto Loan Refi','Standard','BDO','Auto Specialist','15'],['Business Banking','Event-triggered','Business Dev Officer','Business Specialist','8'],['Credit Card','All','BDO','—','25'],['Wealth Management','Windfall event','Relationship Manager','Wealth Advisor','3'],['Savings Account','Standard','BDO / Branch','—','30']].map(([prod,type,primary,esc,max])=>`
+            <tr><td style="font-weight:600;color:var(--navy)">${prod}</td><td>${type}</td><td style="color:var(--teal)">${primary}</td><td style="color:var(--t3)">${esc}</td><td style="font-family:'IBM Plex Mono',monospace">${max}</td></tr>`).join('')}
+        </tbody>
+      </table></div>`
+  },
+  suppression: {
+    title:'Suppression & Do-Not-Call Management',
+    desc:'Configure customer suppression rules and DNC list enforcement. Channel-level DNC controls allow email/digital outreach to phone-DNC customers.',
+    render: () => `
+      <div class="acard"><div class="acard-title">📵 Do-Not-Call List Sources</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:14px;line-height:1.6">The platform checks all enabled DNC sources before routing any lead to a phone channel (BDO call, specialist call, RM outbound). Customers on any active DNC list are automatically suppressed from phone channels.</div>
+        ${[['Internal DNC Registry','Customers who opted out directly with the bank. Updated in real-time when customer requests DNC.',true,'12,847 customers','Last sync: Real-time'],
+           ['Federal DNC Registry','FTC National Do Not Call Registry. Required by Telemarketing Sales Rule (TSR).',true,'248M+ numbers','Last sync: 2h ago'],
+           ['State DNC Lists','Pennsylvania, Ohio, West Virginia, and other state-specific registries.',true,'PA: 3.2M · OH: 2.8M · WV: 412K','Last sync: 24h ago']].map(([nm,desc,on,count,sync])=>`
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+            <label class="tog" style="margin-top:2px"><input type="checkbox" ${on?'checked':''}><span class="tog-track"></span></label>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:600;color:var(--navy)">${nm}</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">${desc}</div>
+              <div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--t4);margin-top:4px">${count} · ${sync}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="acard"><div class="acard-title">📢 Channel-Level DNC Routing</div>
+        <div style="font-size:12px;color:var(--t2);margin-bottom:14px;line-height:1.6">When a customer is on a DNC list, configure which channels are blocked vs. still allowed. This enables email/digital outreach to customers who only opted out of phone calls.</div>
+        <div style="display:grid;grid-template-columns:180px repeat(4,1fr);gap:4px;font-size:11px">
+          <div class="mh"></div>
+          <div class="mh" style="text-align:center">🔴 Internal DNC</div>
+          <div class="mh" style="text-align:center">🔴 Federal DNC</div>
+          <div class="mh" style="text-align:center">🔴 State DNC</div>
+          <div class="mh" style="text-align:center">🟢 No DNC Flag</div>
+          ${[['📞 BDO Outbound Call','BLOCKED','BLOCKED','BLOCKED','ALLOWED'],
+             ['📞 Specialist Call','BLOCKED','BLOCKED','BLOCKED','ALLOWED'],
+             ['📞 RM Outbound Call','BLOCKED','BLOCKED','BLOCKED','ALLOWED'],
+             ['📧 Email Campaign','Configurable ↓','ALLOWED','ALLOWED','ALLOWED'],
+             ['💬 SMS / Text','BLOCKED','BLOCKED','BLOCKED','ALLOWED'],
+             ['🖥 Digital Banner','ALLOWED','ALLOWED','ALLOWED','ALLOWED'],
+             ['🏦 Branch Display','ALLOWED','ALLOWED','ALLOWED','ALLOWED'],
+             ['📬 Direct Mail','Configurable ↓','ALLOWED','ALLOWED','ALLOWED']].map(([channel,...statuses])=>`
+            <div class="ml" style="font-weight:500">${channel}</div>
+            ${statuses.map(s=>`<div style="text-align:center;padding:7px 4px;border-radius:5px;font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:500;${s==='BLOCKED'?'background:var(--red-bg);color:var(--red);border:1px solid rgba(192,57,43,0.2)':s==='ALLOWED'?'background:var(--green-bg);color:var(--green);border:1px solid rgba(26,122,74,0.2)':'background:var(--gold-bg);color:var(--gold);border:1px solid rgba(184,134,11,0.2)'}">${s}</div>`).join('')}`).join('')}
+        </div>
+        <div style="margin-top:14px;padding:12px 14px;background:var(--gold-bg);border:1px solid rgba(184,134,11,0.2);border-radius:7px;font-size:11px;color:var(--t2);line-height:1.6">
+          <strong style="color:var(--gold)">⚠ Configurable channels:</strong> Internal DNC customers opted out directly with the bank. For Email and Direct Mail, choose whether to honor the opt-out for these channels too, or only block phone/SMS.<br>
+          <div style="margin-top:8px;display:flex;gap:16px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--navy)"> Block email for Internal DNC</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" style="accent-color:var(--navy)"> Block direct mail for Internal DNC</label>
+          </div>
+        </div>
+      </div>
+      <div class="a2col">
+        <div class="acard"><div class="acard-title">🚫 Global Suppression Conditions</div>
+          ${[['In Collections','Account 60+ days past due — suppress from ALL channels',true],['Deceased Flag','Deceased status in core banking — suppress from ALL channels',true],['Legal Hold','Account under legal review — suppress from ALL channels',true],['Recent Decline','Declined same product within cooldown period',true],['Recently Onboarded','Customer tenure < 30 days',false],['High Attrition Risk','Model flags >85% churn probability',false],['Active Complaint','Open complaint or dispute in progress',true],['Bankruptcy Flag','Active bankruptcy filing detected',true]].map(([nm,desc,on])=>`
+            <div class="toggle-row"><div><div class="toggle-name">${nm}</div><div class="toggle-desc">${desc}</div></div><label class="tog"><input type="checkbox" ${on?'checked':''}><span class="tog-track"></span></label></div>`).join('')}
+        </div>
+        <div class="acard"><div class="acard-title">⏱ Cooldown Periods</div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Post-Decline Cooldown</div><div class="slider-desc">Days before re-surfacing same product</div></div><input type="range" min="30" max="365" value="90" oninput="sv(this,'sv-cooldown',v=>v+'d')"><div class="slider-val" id="sv-cooldown">90d</div></div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Post-Contact Cooldown</div><div class="slider-desc">Days after any contact before next lead</div></div><input type="range" min="1" max="30" value="7" oninput="sv(this,'sv-contact-cool',v=>v+'d')"><div class="slider-val" id="sv-contact-cool">7d</div></div>
+          <div class="slider-row"><div class="slider-lbl-block"><div class="slider-name">Post-Complaint Cooldown</div><div class="slider-desc">Days after complaint resolution before outreach</div></div><input type="range" min="30" max="180" value="60" oninput="sv(this,'sv-complaint-cool',v=>v+'d')"><div class="slider-val" id="sv-complaint-cool">60d</div></div>
+        </div>
+      </div>
+      <div class="acard"><div class="acard-title">📊 DNC Impact Summary — Today</div>
+        <div class="pipeline-grid">
+          ${[['14,291','Customers on any DNC list','var(--red)','18'],['12,847','Internal DNC','var(--red)','16'],['8,412','Federal DNC (overlap)','var(--orange)','10'],['3,204','State DNC (overlap)','var(--orange)','4'],['342','Leads suppressed today','var(--navy)','12'],['1,847','Redirected to email/digital','var(--teal)','65']].map(([num,lbl,col,pct])=>`
+            <div class="pipe-card"><div class="pipe-num" style="color:${col}">${num}</div><div class="pipe-lbl">${lbl}</div><div class="pipe-bar"><div class="pipe-fill" style="width:${pct}%;background:${col}"></div></div></div>`).join('')}
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;background:var(--teal-bg);border:1px solid rgba(14,122,110,0.2);border-radius:7px;font-size:11px;color:var(--t2);line-height:1.6">
+          <strong style="color:var(--teal)">✓ Channel re-routing active:</strong> 1,847 leads that would have been phone calls were automatically redirected to email or digital channels today because the customer is on a DNC list. These leads are NOT lost — they are served through compliant channels.
+        </div>
+      </div>`
+  },
+  pipeline: {
+    title:'Pipeline Health',
+    desc:'Real-time view of the data pipeline status. Green = healthy, amber = degraded, red = failed.',
+    render: () => `
+      <div class="acard"><div class="acard-title">Pipeline Status — Today</div>
+      <div class="pipeline-grid">
+        ${[['99.8%','Data pipeline uptime','var(--teal)','99'],['22min','Batch processing time','var(--navy)','22'],['1.2h','Avg lead latency','var(--navy)','60'],['2,847','Leads generated today','var(--teal)','85'],['143','Event alerts fired','var(--orange)','40'],['96.4%','Data quality score','var(--teal)','96']].map(([num,lbl,col,pct])=>`
+          <div class="pipe-card"><div class="pipe-num" style="color:${col}">${num}</div><div class="pipe-lbl">${lbl}</div><div class="pipe-bar"><div class="pipe-fill" style="width:${pct}%;background:${col}"></div></div></div>`).join('')}
+      </div></div>
+      <div class="acard"><div class="acard-title">Source System Status</div>
+        ${[['Core Banking (FIS)','✅ Connected','Last sync: 2 min ago'],['CRM (Salesforce)','✅ Connected','Last sync: 15 min ago'],['Card Processor','✅ Connected','Last sync: 5 min ago'],['Market Rate Feed','⚠️ Degraded','Last sync: 4 hours ago — rates may be stale'],['Credit Bureau','✅ Connected','Last sync: 6 hours ago']].map(([src,status,meta])=>`
+          <div class="toggle-row" style="display:block;padding:10px 0"><div style="font-size:12px;font-weight:600;color:var(--navy)">${src} &nbsp; ${status}</div><div style="font-size:11px;color:var(--t3);margin-top:2px">${meta}</div></div>`).join('')}
+      </div>`
+  },
+  models: {
+    title:'Model Performance',
+    desc:'Track model accuracy, conversion lift, and score distribution over time.',
+    render: () => `
+      <div class="acard"><div class="acard-title">AUC-ROC by Product</div>
+      <div class="model-grid">
+        ${[['Credit Card','0.81','3.8×','Jan 15','On track'],['Auto Loan','0.76','3.2×','Jan 15','On track'],['HELOC','0.74','2.9×','Dec 12','Monitor'],['Personal Loan','0.72','2.7×','Dec 12','Monitor'],['Business Banking','0.78','3.5×','Jan 15','On track'],['Wealth Mgmt','0.69','2.4×','Nov 20','⚠ Retrain soon']].map(([nm,auc,lift,trained,status])=>`
+          <div class="model-card">
+            <div class="model-name">${nm}</div>
+            <div class="model-auc"><div class="auc-bar"><div class="auc-fill" style="width:${parseFloat(auc)*100}%"></div></div><div class="auc-val">AUC ${auc}</div></div>
+            <div class="model-meta">Top decile lift: ${lift}<br>Trained: ${trained}<br><span style="color:${status.includes('⚠')?'var(--orange)':'var(--teal)'}">${status}</span></div>
+          </div>`).join('')}
+      </div></div>`
+  }
+};
+
+const MGR_ALERTS = [
+  {cls:'red',icon:'🏠',name:'Jennifer M. Castellano',desc:'Home Purchase → HELOC, $80K equity · Assigned: S. Okonkwo',time:'47 min ago'},
+  {cls:'orange',icon:'🚗',name:'Robert T. Nguyen',desc:'Chase auto 8.1% → save $67/mo · Assigned: M. Rivera',time:'2h ago'},
+  {cls:'red',icon:'💼',name:'Amelia K. Ross',desc:'Business Formation → biz package · <span style="color:var(--red);font-weight:600">Unassigned ⚠</span>',time:'3h ago'},
+  {cls:'teal',icon:'👶',name:'Sandra P. Flores',desc:'New Baby → 529 + life insurance · Assigned: P. Sharma',time:'5h ago'},
+  {cls:'orange',icon:'💰',name:'Tyler J. Brooks',desc:'Windfall $85K → Wealth Management · Assigned: D. Kim',time:'6h ago'}
+];
+
+const BDO_PERF = [
+  {name:'Sarah Okonkwo',leads:312,contacted:'287 (92%)',rate:34,rateColor:'var(--green)',time:'18h',rev:'$148K',status:'On track',statusColor:'var(--green)'},
+  {name:'David Kim',leads:334,contacted:'311 (93%)',rate:31,rateColor:'var(--green)',time:'22h',rev:'$134K',status:'On track',statusColor:'var(--green)'},
+  {name:'Marcus Rivera',leads:298,contacted:'241 (81%)',rate:28,rateColor:'var(--teal)',time:'31h',rev:'$112K',status:'Needs coaching',statusColor:'var(--gold)'},
+  {name:'Jennifer Walsh',leads:276,contacted:'198 (72%)',rate:19,rateColor:'var(--orange)',time:'52h ⚠',rev:'$76K',status:'Review urgently',statusColor:'var(--red)',warn:true}
+];
+
+// ═══════════════════════════════ BDO LOGIC ═══════════════════════════════
+
+let currentBdoId = null;
+
+function initBDO() {
+  const rows = document.getElementById('bdo-rows');
+  rows.innerHTML = BDO_LEADS.map(l => `
+    <div class="lead-row ${l.urgency}" data-id="${l.id}" onclick="selectBdoLead(${l.id})">
+      <div class="lead-priority-num">${l.rank}</div>
+      <div class="lead-row-body">
+        <div class="lead-row-name">${l.name}</div>
+        <div class="lead-row-product">${l.product}</div>
+        <div class="lead-row-tags"><span class="ltag ${l.tagClass}">${l.tag}</span></div>
+      </div>
+      <div class="lead-row-score score-${l.urgency}">${l.score}</div>
+    </div>`).join('');
+}
+
+function selectBdoLead(id) {
+  currentBdoId = id;
+  document.querySelectorAll('#bdo-rows .lead-row').forEach(r => r.classList.remove('selected'));
+  document.querySelector(`[data-id="${id}"]`).classList.add('selected');
+  const l = BDO_LEADS[id];
+  const next = BDO_LEADS[id + 1];
+  const urgMap = {urgent:'ub-urgent 🔴 Urgent — Contact within 24h',high:'ub-high 🟠 High Priority — Contact this week',medium:'ub-medium 🟡 Medium — Contact within 2 weeks',normal:''};
+  const ubParts = urgMap[l.urgency].split(' ');
+  const ubCls = ubParts[0]; const ubTxt = ubParts.slice(1).join(' ');
+  document.getElementById('bdo-card').innerHTML = `
+    <div class="cust-header">
+      <div class="cust-header-top">
+        <div>
+          ${ubCls ? `<div class="urgency-badge ${ubCls}">${ubTxt}</div>` : ''}
+          <div class="cust-name-big">${l.name}</div>
+          <div class="cust-meta">Customer since ${l.since} · ${l.location} · Preferred: ${l.preferred} · Last contact: ${l.lastContact}</div>
+          <div class="holdings-row">
+            ${l.holdings.map(h=>`<span class="holding h-has">✓ ${h}</span>`).join('')}
+            ${l.missing.map(m=>`<span class="holding h-miss">✗ ${m}</span>`).join('')}
+          </div>
+        </div>
+        <div class="score-block">
+          <div class="score-big ${l.urgency}">${l.score}</div>
+          <div class="score-lbl">Priority Score</div>
+          <div class="conv-prob">${l.prob} conv. prob.</div>
+        </div>
+      </div>
+    </div>
+    <div class="script-card">
+      <div class="script-lbl">Call Script</div>
+      ${l.script.map(s=>`
+        <div class="script-block">
+          <div class="script-step">
+            <div class="step-num">${s.n}</div>
+            <div class="step-content">
+              <div class="step-title">${s.t}</div>
+              <div class="step-text">${s.s}</div>
+            </div>
+          </div>
+        </div>`).join('')}
+      <div class="script-block">
+        <div class="script-step">
+          <div class="step-num">?</div>
+          <div class="step-content">
+            <div class="step-title">If They Push Back</div>
+            <div class="obj-grid">${l.objections.map(o=>`<div class="obj-item"><div class="obj-q">"${o.q}"</div><div class="obj-a">${o.a}</div></div>`).join('')}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="coll-section">
+      <div class="coll-header" onclick="toggleColl(this)"><span>Why You're Calling — Evidence</span><span class="coll-arrow">›</span></div>
+      <div class="coll-body">
+        <div class="why-text" style="margin-bottom:14px">${l.why}</div>
+        <div class="ev-chips">${l.evidence.map(([ic,lb,vl])=>`<div class="ev-chip"><span>${ic}</span>${lb}<span class="ev-chip-val">${vl}</span></div>`).join('')}</div>
+      </div>
+    </div>
+    <div class="coll-section">
+      <div class="coll-header" onclick="toggleColl(this)"><span>Score Breakdown</span><span class="coll-arrow">›</span></div>
+      <div class="coll-body">
+        <div class="tier-row">${l.tiers.map(t=>`<div class="tier-box"><div class="tier-val" style="color:${t.c}">${t.v}</div><div class="tier-name">${t.l}</div></div>`).join('')}</div>
+      </div>
+    </div>`;
+  document.getElementById('bdo-actions').style.display = 'flex';
+  document.getElementById('bdo-next').textContent = next ? `Next: ${next.name} →` : 'Last lead ✓';
+  document.getElementById('bdo-card').scrollTop = 0;
+}
+
+function logContacted() {
+  const row = document.querySelector(`[data-id="${currentBdoId}"]`);
+  if(row) { row.style.opacity = '0.5'; row.style.textDecoration = 'line-through'; }
+  showToast('Logged as contacted');
+}
+function markConverted() {
+  const row = document.querySelector(`[data-id="${currentBdoId}"]`);
+  if(row) { row.style.opacity = '0.4'; row.querySelector('.lead-row-name').textContent += ' ✅'; }
+  showToast('Marked as converted! 🎉');
+}
+function markNotInterested() {
+  const row = document.querySelector(`[data-id="${currentBdoId}"]`);
+  if(row) { row.style.opacity = '0.35'; }
+  showToast('Marked as not interested');
+}
+
+// ═══════════════════════════════ SPECIALIST LOGIC ═══════════════════════════════
+
+let currentSpecProduct = 'auto';
+let currentSpecLead = 0;
+
+function initSpecialist() {
+  renderSpecTabs();
+  renderSpecLeads();
+  renderSpecDetail(0);
+}
+
+function renderSpecTabs() {
+  const tabs = document.getElementById('spec-prod-tabs');
+  tabs.innerHTML = Object.entries(SPEC_DATA).map(([key,d]) => `
+    <div class="spec-tab ${key===currentSpecProduct?'active':''}" onclick="selectSpecProduct('${key}')">
+      ${d.label} <span class="spec-count">${d.count}</span>
+    </div>`).join('');
+}
+
+function renderSpecLeads() {
+  const list = document.getElementById('spec-lead-list');
+  const leads = SPEC_DATA[currentSpecProduct].leads;
+  list.innerHTML = leads.map((l,i) => `
+    <div class="spec-lead-row ${i===currentSpecLead?'selected':''}" onclick="selectSpecLead(${i})">
+      <div class="spec-row-name">${l.name}</div>
+      <div class="spec-row-detail">${l.detail}</div>
+    </div>`).join('');
+}
+
+function selectSpecProduct(key) {
+  currentSpecProduct = key; currentSpecLead = 0;
+  renderSpecTabs(); renderSpecLeads(); renderSpecDetail(0);
+}
+
+function selectSpecLead(i) {
+  currentSpecLead = i;
+  renderSpecLeads(); renderSpecDetail(i);
+}
+
+function renderSpecDetail(i) {
+  const leads = SPEC_DATA[currentSpecProduct].leads;
+  const l = leads[i];
+  const next = leads[i+1];
+  const isComp = l.compFrom !== '—';
+  document.getElementById('spec-detail').innerHTML = `
+    <div>
+      <div class="urgency-badge ub-high" style="display:inline-block">🟠 High Priority</div>
+      <div class="rm-cust-name">${l.name}</div>
+      <div style="font-size:13px;color:var(--t3);margin-top:3px">Customer since ${l.tenure} · ${l.products} · ${l.location}</div>
+    </div>
+    ${isComp ? `<div class="comp-box">
+      <div><div class="comp-lbl">Their Current Loan</div><div class="comp-bank">${l.compFrom}</div><div class="comp-rate">${l.compRate}</div><div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:3px">${l.estPmt}</div></div>
+      <div class="comp-arrow">→</div>
+      <div><div class="comp-lbl">Our Offer</div><div class="comp-bank">First National Bank</div><div class="comp-rate ours">${l.ourRate}</div>
+        <div class="savings-badge"><div class="savings-num">${l.saveMo} savings</div><div class="savings-sub">${l.saveTotal}</div></div>
+      </div>
+    </div>` : `<div class="section-card"><div class="sec-lbl">Opportunity</div><div class="why-text">Our offer: <strong>${l.ourRate}</strong> &nbsp;·&nbsp; ${l.saveMo} &nbsp;·&nbsp; ${l.saveTotal}</div></div>`}
+    <div class="script-card">
+      <div class="script-lbl">Call Script — ${SPEC_DATA[currentSpecProduct].label}</div>
+      <div class="script-block"><div class="script-step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Opening</div><div class="step-text">"Hi <strong>${l.name.split(' ')[0]}</strong>, this is [your name] from First National Bank — I'm on the ${SPEC_DATA[currentSpecProduct].label.replace(/[🚗🏠💳💼]/g,'').trim()} team. I'm reaching out because I think we can ${isComp?'save you money on your current loan':'help you get more from your banking relationship'}. Do you have 90 seconds?"</div></div></div></div>
+      <div class="script-block"><div class="script-step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Lead with the Value</div><div class="step-text">${isComp?`"Your current rate is around <em>${l.compRate}</em>. We can offer <em>${l.ourRate}</em> — that's <em>${l.saveMo}</em>, or ${l.saveTotal}. We handle all the paperwork so it's a one-call process."`:`"${l.saveMo} — ${l.saveTotal}. No catch, we'd just love to deepen our relationship."`}</div></div></div></div>
+      <div class="script-block"><div class="script-step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Call to Action</div><div class="step-text">"I can start the application right now — it takes about 5 minutes. Want to go ahead?"</div></div></div></div>
+      <div class="script-block"><div class="script-step"><div class="step-num">?</div><div class="step-content"><div class="step-title">If They Push Back</div><div class="obj-grid">
+        <div class="obj-item"><div class="obj-q">"What's the catch?"</div><div class="obj-a">No catch — you're a valued customer. We want your business and we can offer a better deal.</div></div>
+        <div class="obj-item"><div class="obj-q">"I'll think about it."</div><div class="obj-a">Of course — I can send the offer in writing so you have it. Takes 30 seconds.</div></div>
+      </div></div></div></div>
+    </div>`;
+  document.getElementById('spec-actions').style.display = 'flex';
+  document.getElementById('spec-next').textContent = next ? `Next: ${next.name} →` : 'Last lead ✓';
+  document.getElementById('spec-detail').scrollTop = 0;
+}
+
+// ═══════════════════════════════ RM LOGIC ═══════════════════════════════
+
+let currentRmCustomer = 0;
+
+function initRM() {
+  const list = document.getElementById('rm-cust-list');
+  list.innerHTML = RM_CUSTOMERS.map((c,i) => `
+    <div class="cust-row ${i===0?'selected':''}" onclick="selectRmCustomer(${i})">
+      <div><div class="cust-nm">${c.name}</div><div class="cust-prods">${c.products}</div></div>
+      <div class="cust-signal"><div class="sig-dot" style="background:${c.sigColor}"></div><div class="sig-count">${c.sigCount}</div></div>
+    </div>`).join('');
+  renderRmDetail(0);
+}
+
+function selectRmCustomer(i) {
+  currentRmCustomer = i;
+  document.querySelectorAll('#rm-cust-list .cust-row').forEach((r,idx) => r.classList.toggle('selected', idx===i));
+  renderRmDetail(i);
+}
+
+function renderRmDetail(i) {
+  const c = RM_CUSTOMERS[i];
+  document.getElementById('rm-detail').innerHTML = `
+    <div>
+      <div class="rm-cust-name">${c.name}</div>
+      <div class="rm-bio">Customer since ${c.since} · ${c.tenure} relationship · ${c.location}</div>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:10px">Active Opportunities <span style="font-size:11px;font-weight:400;color:var(--t3);margin-left:5px">${c.opps.length} signal${c.opps.length>1?'s':''} detected</span></div>
+      <div class="opp-list">
+        ${c.opps.map(o=>`
+          <div class="opp-card ${o.cls}" onclick="showToast('Opening script for ${o.prod.split('—')[0].trim()}...')">
+            <div class="opp-icon" style="background:${o.bg}">${o.icon}</div>
+            <div class="opp-body"><div class="opp-prod">${o.prod}</div><div class="opp-why">${o.why}</div></div>
+            <div class="opp-meta"><div class="opp-score" style="color:${o.scoreColor}">${o.score}</div><div class="opp-act">${o.act}</div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="sec-lbl">Relationship Context</div>
+      <div class="why-text">${c.bio}</div>
+    </div>`;
+  document.getElementById('rm-detail').scrollTop = 0;
+}
+
+// ═══════════════════════════════ MANAGER LOGIC ═══════════════════════════════
+
+function initManager() {
+  // Alert queue
+  document.getElementById('mgr-alert-queue').innerHTML = MGR_ALERTS.map(a=>`
+    <div class="aq-item ${a.cls}" onclick="showToast('Viewing lead for ${a.name}')">
+      <div class="aq-icon">${a.icon}</div>
+      <div><div class="aq-name">${a.name}</div><div class="aq-desc">${a.desc}</div><div class="aq-time">${a.time}</div></div>
+    </div>`).join('');
+  // BDO table
+  document.getElementById('mgr-bdo-table').innerHTML = BDO_PERF.map(b=>`
+    <tr>
+      <td class="td-name">${b.name}</td>
+      <td>${b.leads}</td>
+      <td>${b.contacted}</td>
+      <td><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:${b.rateColor};font-weight:500">${b.rate}%</div><div class="mini-bar"><div class="mini-fill" style="width:${b.rate}%;background:${b.rateColor}"></div></div></td>
+      <td class="${b.warn?'td-warn':''}">${b.time}</td>
+      <td style="font-weight:600;color:var(--navy)">${b.rev}</td>
+      <td><span style="font-size:11px;color:${b.statusColor};font-weight:500">● ${b.status}</span></td>
+    </tr>`).join('');
+}
+
+function assignAll() { showToast('All unassigned alerts distributed to available BDOs'); }
+
+// ═══════════════════════════════ ADMIN LOGIC ═══════════════════════════════
+
+function initAdmin() { showAdminPanel('adjacency', document.querySelector('.admin-nav-item.active')); }
+
+function showAdminPanel(key, el) {
+  document.querySelectorAll('.admin-nav-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const p = ADMIN_PANELS[key];
+  if(!p) return;
+  document.getElementById('admin-content').innerHTML = `
+    <div><div class="admin-title">${p.title}</div><div class="admin-desc">${p.desc}</div></div>
+    ${p.render()}`;
+  // re-init sliders
+  document.querySelectorAll('#admin-content input[type="range"]').forEach(s => {
+    const pct = ((s.value - s.min) / (s.max - s.min) * 100);
+    s.style.setProperty('--pct', pct + '%');
+  });
+}
+
+// ═══════════════════════════════ SHARED UTILS ═══════════════════════════════
+
+function showTab(id, btn) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('v-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function toggleColl(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('.coll-arrow');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  arrow.style.transform = open ? '' : 'rotate(90deg)';
+}
+
+function fc(el) {
+  el.closest('.filter-row').querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function sv(input, id, fmt) {
+  const v = input.value;
+  const pct = ((v - input.min) / (input.max - input.min) * 100);
+  input.style.setProperty('--pct', pct+'%');
+  const el = document.getElementById(id);
+  if(el) el.textContent = fmt(v);
+}
+
+function editMC(cell) {
+  const cur = cell.textContent;
+  const v = prompt('Set adjacency score (0–100):', cur);
+  if(v !== null && !isNaN(v)) {
+    const n = Math.max(0, Math.min(100, parseInt(v)));
+    cell.textContent = n;
+    cell.className = 'mc';
+    if(n>=80) cell.classList.add('mc90');
+    else if(n>=60) cell.classList.add('mc70');
+    else if(n>0) cell.classList.add('mc50');
+    else cell.classList.add('mc0');
+  }
+}
+
+let toastTimer;
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if(!t) { t = document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:opacity .3s;pointer-events:none;'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.opacity='1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.style.opacity='0'; }, 2000);
+}
+
+// ═══════════════════════════════ MARKETING LOGIC ═══════════════════════════════
+
+const MKT_CAMPAIGNS = [
+  {name:'Q1 Auto Loan Refi Blitz', product:'Auto Loan Refi', status:'Active', statusColor:'var(--green)', channels:'BDO 60% · Email 30% · Digital 10%', leads:412, contacted:'348 (84%)', converted:87, rate:'25.0%', rateColor:'var(--green)', rev:'$312K'},
+  {name:'HELOC Spring Push', product:'HELOC', status:'Active', statusColor:'var(--green)', channels:'RM 50% · BDO 30% · Email 20%', leads:186, contacted:'142 (76%)', converted:38, rate:'26.8%', rateColor:'var(--green)', rev:'$428K'},
+  {name:'Credit Card Pre-Approval', product:'Credit Card', status:'Active', statusColor:'var(--green)', channels:'BDO 70% · Email 30%', leads:524, contacted:'401 (77%)', converted:96, rate:'23.9%', rateColor:'var(--teal)', rev:'$184K'},
+  {name:'Business Formation Detection', product:'Business Banking', status:'Active', statusColor:'var(--green)', channels:'BDO 100%', leads:38, contacted:'31 (82%)', converted:14, rate:'45.2%', rateColor:'var(--green)', rev:'$89K'},
+  {name:'Student Loan Refi', product:'Student Loan', status:'Paused', statusColor:'var(--orange)', channels:'Email 80% · Digital 20%', leads:0, contacted:'—', converted:'—', rate:'—', rateColor:'var(--t3)', rev:'—'},
+  {name:'Mortgage Pre-Qual (Q4)', product:'Mortgage', status:'Completed', statusColor:'var(--t3)', channels:'RM 40% · BDO 40% · Email 20%', leads:892, contacted:'810 (91%)', converted:134, rate:'16.5%', rateColor:'var(--teal)', rev:'$1.8M'},
+];
+
+const MKT_CHANNEL_RULES = [
+  {score:'800+', urgency:'Urgent (event-triggered)', routing:'Assigned RM → if no RM, senior BDO', channel:'Phone call within 24h', icon:'🔴'},
+  {score:'500-799', urgency:'High priority', routing:'BDO call list (top of queue)', channel:'BDO call within 48h', icon:'🟠'},
+  {score:'300-499', urgency:'Medium priority', routing:'BDO call list + email nurture', channel:'BDO call within 1 week + email Day 1', icon:'🟡'},
+  {score:'150-299', urgency:'Standard', routing:'Email campaign only', channel:'3-email drip sequence over 14 days', icon:'⚪'},
+  {score:'< 150', urgency:'Suppressed', routing:'Not surfaced to any channel', channel:'Held for next scoring cycle', icon:'—'},
+];
+
+const MKT_ATTRIBUTION = [
+  {source:'BDO Outbound Call', conversions:187, pct:45, color:'var(--navy)'},
+  {source:'Email Campaign', conversions:98, pct:24, color:'var(--teal)'},
+  {source:'RM Proactive Outreach', conversions:72, pct:17, color:'var(--gold)'},
+  {source:'Branch / Walk-in', conversions:38, pct:9, color:'var(--orange)'},
+  {source:'Digital Self-Service', conversions:20, pct:5, color:'var(--t3)'},
+];
+
+const MKT_PRODUCT_PRIORITY = [
+  {rank:1, product:'Auto Loan Refi', priority:'Critical', reason:'Q1 campaign, competitive displacement focus', color:'var(--red)'},
+  {rank:2, product:'HELOC', priority:'High', reason:'Spring renovation season, high per-lead value', color:'var(--orange)'},
+  {rank:3, product:'Credit Card', priority:'High', reason:'Pre-approval queue active, high volume', color:'var(--orange)'},
+  {rank:4, product:'Business Banking', priority:'Medium', reason:'Event-triggered only (LLC formation detection)', color:'var(--gold)'},
+  {rank:5, product:'Savings Account', priority:'Standard', reason:'Always-on, relationship deepening', color:'var(--teal)'},
+  {rank:6, product:'Mortgage', priority:'Paused', reason:'Q4 campaign completed, resuming Q2', color:'var(--t3)'},
+  {rank:7, product:'Personal Loan', priority:'Moratorium', reason:'Moratorium through March — risk review', color:'var(--red)'},
+];
+
+const MKT_ABTESTS = [
+  {name:'Auto Refi: Savings Framing', product:'Auto Loan', variable:'CTA message', control:'"Save $67/month"', variant:'"Put $2,400 back in your pocket"', sample:'800 per arm', lift:'+18%', liftColor:'var(--green)', confidence:'94%', status:'Running', statusColor:'var(--green)'},
+  {name:'HELOC: Script Length', product:'HELOC', variable:'Script style', control:'Full 4-step script', variant:'2-step quick pitch', sample:'400 per arm', lift:'+7%', liftColor:'var(--teal)', confidence:'82%', status:'Running', statusColor:'var(--green)'},
+  {name:'CC: Channel Test', product:'Credit Card', variable:'Primary channel', control:'BDO call only', variant:'Email first, BDO follow-up', sample:'600 per arm', lift:'-3%', liftColor:'var(--red)', confidence:'71%', status:'Needs more data', statusColor:'var(--orange)'},
+];
+
+function initMarketing() {
+  // Campaigns table
+  document.getElementById('mkt-campaigns').innerHTML = MKT_CAMPAIGNS.map(c => `
+    <tr>
+      <td class="td-name">${c.name}</td>
+      <td>${c.product}</td>
+      <td><span style="color:${c.statusColor};font-weight:500">● ${c.status}</span></td>
+      <td style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--t2)">${c.channels}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${c.leads}</td>
+      <td>${c.contacted}</td>
+      <td style="font-weight:600;color:var(--navy)">${c.converted}</td>
+      <td><span style="font-family:'IBM Plex Mono',monospace;color:${c.rateColor};font-weight:500">${c.rate}</span>${c.rate !== '—' ? `<div class="mini-bar"><div class="mini-fill" style="width:${parseFloat(c.rate)||0}%;background:${c.rateColor}"></div></div>` : ''}</td>
+      <td style="font-weight:600;color:var(--navy)">${c.rev}</td>
+    </tr>`).join('');
+
+  // Channel rules
+  document.getElementById('mkt-channel-rules').innerHTML = MKT_CHANNEL_RULES.map(r => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:14px;width:24px;text-align:center">${r.icon}</div>
+      <div style="width:80px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:var(--navy)">${r.score}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--navy)">${r.urgency}</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:1px">${r.routing}</div>
+      </div>
+      <div style="font-size:11px;color:var(--t2);font-family:'IBM Plex Mono',monospace;text-align:right">${r.channel}</div>
+    </div>`).join('');
+
+  // Attribution
+  document.getElementById('mkt-attribution').innerHTML = MKT_ATTRIBUTION.map(a => `
+    <div class="bar-row">
+      <div class="bar-lbl">${a.source}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${a.pct}%;background:${a.color}">${a.conversions}</div></div>
+      <div class="bar-count">${a.pct}%</div>
+    </div>`).join('') + `
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px">
+      <div><span style="font-weight:600;color:var(--navy)">415</span> <span style="color:var(--t3)">total conversions MTD</span></div>
+      <div><span style="font-weight:600;color:var(--green)">$2.81M</span> <span style="color:var(--t3)">est. annual revenue</span></div>
+      <div><span style="font-weight:600;color:var(--teal)">$347</span> <span style="color:var(--t3)">cost per acquisition</span></div>
+    </div>`;
+
+  // Product priority
+  document.getElementById('mkt-product-priority').innerHTML = MKT_PRODUCT_PRIORITY.map(p => `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div style="width:24px;height:24px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--t3)">${p.rank}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--navy)">${p.product}</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:1px">${p.reason}</div>
+      </div>
+      <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:500;color:${p.color};padding:3px 9px;border-radius:4px;border:1px solid ${p.color}22;background:${p.color}11">${p.priority}</div>
+    </div>`).join('');
+
+  // A/B Tests
+  document.getElementById('mkt-abtests').innerHTML = MKT_ABTESTS.map(t => `
+    <tr>
+      <td class="td-name">${t.name}</td>
+      <td>${t.product}</td>
+      <td>${t.variable}</td>
+      <td style="font-size:11px;font-family:'IBM Plex Mono',monospace">${t.control}</td>
+      <td style="font-size:11px;font-family:'IBM Plex Mono',monospace">${t.variant}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${t.sample}</td>
+      <td style="font-weight:600;color:${t.liftColor};font-family:'IBM Plex Mono',monospace">${t.lift}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${t.confidence}</td>
+      <td><span style="color:${t.statusColor};font-weight:500;font-size:11px">● ${t.status}</span></td>
+    </tr>`).join('');
+
+  // Init sliders
+  document.querySelectorAll('#mkt-shell input[type="range"]').forEach(s => {
+    const pct = ((s.value - s.min) / (s.max - s.min) * 100);
+    s.style.setProperty('--pct', pct + '%');
+  });
+}
+
+// ═══════════════════════════════ INIT ═══════════════════════════════
+initBDO();
+initSpecialist();
+initRM();
+initManager();
+initMarketing();
+initAdmin();
+</script>
+</body>
+</html>
